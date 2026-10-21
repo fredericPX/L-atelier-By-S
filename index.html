@@ -111,6 +111,21 @@ label.f > *{color:var(--fg)}
 .calc-sum{display:flex;flex-direction:column;gap:2px;padding:10px 12px;background:var(--sunk);font-size:14px}
 .calc-sum div{display:flex;justify-content:space-between;gap:10px}
 .calc-sum div span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+.acc{border:1px solid var(--line);border-left:4px solid var(--cat);border-radius:12px;background:var(--surface);overflow:hidden}
+.acc-h{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:10px;width:100%;padding:14px 14px;font-size:16px}
+.acc-h b{font-weight:700}
+.acc-h:focus-visible{outline:2px solid var(--green);outline-offset:-2px}
+.chev{width:26px;height:26px;flex:none;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;border-radius:50%;background:var(--sunk);padding:3px;transition:transform .2s}
+.acc.open .chev{transform:rotate(180deg);background:var(--cat);color:#fff}
+.acc.open .acc-h{background:var(--sunk)}
+.acc-b{display:flex;flex-direction:column;gap:8px;padding:10px}
+.acc-b .svc{background:var(--bg)}
+.plus{width:30px;height:30px;border-radius:50%;background:var(--green);color:#fff;font-size:20px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex:none;line-height:1}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tile{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:11px 10px;font-weight:600;font-size:14px;text-align:left;box-shadow:0 2px 0 var(--line)}
+.tile[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff;box-shadow:0 2px 0 #1a3d31}
+button:active,.btn:active,label.btn:active{transform:scale(.97);filter:brightness(1.15)}
+@media (prefers-reduced-motion:reduce){.chev{transition:none}button:active{transform:none}}
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 nav.tabs .in{max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
 nav.tabs button{border:0;background:transparent;padding:10px 4px 12px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;font-weight:600;color:var(--muted)}
@@ -317,7 +332,6 @@ function calcBar(){
 }
 function renderCaisse(){
   const r=calc(cart);const c=cliById(cart.cid);
-  const svcs=S.services.filter(s=>s.cat===catSel&&!s.hidden);
   const last=c?S.visits.filter(v=>v.cid===c.id).sort((a,b)=>b.date.localeCompare(a.date))[0]:null;
   V.innerHTML=`
   <h1>Prestation</h1><p class="sub">Touchez les prestations : le calcul et le prix à annoncer s'affichent en bas de l'écran.</p>
@@ -326,8 +340,9 @@ function renderCaisse(){
   ${last&&!cart.lines.length?`<button class="btn block" style="margin-top:8px" id="redo">Refaire comme le ${esc(dShort(last.date))}</button>`:''}
 
   <h2>Prestations</h2>
-  <div class="chips" role="group" aria-label="Catégories">${CATS.map(k=>`<button class="chip" data-cat="${esc(k)}" aria-pressed="${k===catSel}">${esc(k)}</button>`).join('')}</div>
-  <div class="stack" style="margin-top:8px">${svcs.map(s=>`<button class="svc" data-add="${s.id}"><span class="grow">${esc(s.name)}<span class="tag">${s.dur} min${s.frange?' · offerte avec une autre prestation':''}${s.supp?' · supplément cheveux longs possible':''}</span></span><span class="p num">${priceTag(s)}</span><span aria-hidden="true" style="color:var(--green);font-size:20px">+</span></button>`).join('')}</div>
+  <div class="stack">${CATS.map((k,ci)=>{const list=S.services.filter(s=>s.cat===k&&!s.hidden);const open=k===catSel;const n=cart.lines.filter(l=>l.kind==='svc'&&svcById(l.sid)?.cat===k).length;
+    return `<div class="acc ${open?'open':''}" style="--cat:var(${ci%2?'--red':'--green'})"><button class="acc-h" data-cat="${esc(k)}" aria-expanded="${open}"><span class="grow"><b>${esc(k)}</b><span class="tag">${list.length} prestation${list.length>1?'s':''}${n?` · <span style="color:var(--ok)">${n} choisie${n>1?'s':''}</span>`:''}</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+    ${open?`<div class="acc-b">${list.map(s=>`<button class="svc" data-add="${s.id}"><span class="grow">${esc(s.name)}<span class="tag">${s.dur} min${s.frange?' · offerte avec une autre prestation':''}${s.supp?' · supplément cheveux longs possible':''}</span></span><span class="p num">${priceTag(s)}</span><span class="plus" aria-hidden="true">+</span></button>`).join('')}</div>`:''}</div>`}).join('')}</div>
 
   <h2 id="estim">Calcul</h2>
   <div class="ticket">
@@ -357,7 +372,7 @@ function renderCaisse(){
 
   V.querySelector('#cCli').onchange=e=>{if(e.target.value==='__new'){e.target.value=cart.cid;clientSheet(null,c=>{cart.cid=c.id;render()});return}cart.cid=e.target.value;render()};
   const redo=V.querySelector('#redo'); if(redo)redo.onclick=()=>{last.lines.forEach(l=>{if(l.kind==='svc'&&svcById(l.sid))cart.lines.push({...l,lid:nid('l')});else if(l.kind==='prod'&&!l.sold)cart.lines.push({...l,lid:nid('l')})});toast('Prestations et produits repris');render()};
-  V.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{catSel=b.dataset.cat;render()});
+  V.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{catSel=catSel===b.dataset.cat?null:b.dataset.cat;render();const h=V.querySelector(`[data-cat="${CSS.escape(b.dataset.cat)}"]`);if(h&&catSel)h.scrollIntoView({block:'nearest',behavior:'smooth'})});
   V.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{addSvc(b.dataset.add,true);render();toast(svcById(b.dataset.add).name+' : '+fmtE(calc(cart).total)+' au total')});
   V.querySelectorAll('[data-rml]').forEach(b=>b.onclick=()=>{cart.lines=cart.lines.filter(l=>l.lid!==b.dataset.rml);render()});
   const setPrice=(l,v)=>{const s=svcById(l.sid);v=Math.max(0,Math.round(v*100)/100);if(s&&s.type!=='fixe'&&v<s.price){v=s.price;toast('Minimum '+fmtE(s.price))}if(s&&s.type==='range'&&v>s.max){v=s.max;toast('Maximum '+fmtE(s.max))}l.price=v;cart.override='';render()};
@@ -432,7 +447,7 @@ let tarCat=CATS[0];
 function renderTarifs(){
   const list=S.services.filter(s=>s.cat===tarCat);
   V.innerHTML=`<h1>Tarifs</h1><p class="sub">Touchez un prix pour le modifier. Il est enregistré tout de suite.</p>
-  <div class="chips" role="group" aria-label="Catégories">${CATS.map(k=>`<button class="chip" data-tc="${esc(k)}" aria-pressed="${k===tarCat}">${esc(k)}</button>`).join('')}</div>
+  <div class="tiles" role="group" aria-label="Catégories">${CATS.map(k=>`<button class="tile" data-tc="${esc(k)}" aria-pressed="${k===tarCat}">${esc(k)}</button>`).join('')}</div>
   <div class="stack" style="margin-top:8px">${list.map(s=>`<div class="card" style="${s.hidden?'opacity:.55':''}"><div class="row"><span class="grow"><b>${esc(s.name)}</b><span class="tag">${s.type==='min'?'À partir de':s.type==='range'?'Fourchette':'Prix fixe'} · ${s.dur} min${s.hidden?' · masquée':''}</span></span>
     <input class="price-in num" type="number" inputmode="decimal" id="t-${s.id}" data-tp="${s.id}" value="${s.price}" aria-label="Prix de ${esc(s.name)}">${s.type==='range'?`<span class="tag">à</span><input class="price-in num" type="number" id="tm-${s.id}" data-tm="${s.id}" value="${s.max}" aria-label="Prix maximum">`:''}</div>
     <div class="row" style="margin-top:6px"><button class="btn sm ghost" data-edit="${s.id}">Modifier</button><button class="btn sm ghost" data-hide="${s.id}">${s.hidden?'Afficher':'Masquer'}</button></div></div>`).join('')}</div>
