@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>L'atelier by S.</title>
+<meta name="theme-color" content="#2E5B4C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="L'atelier">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+body{margin:0}
+[hidden]{display:none!important}
+/* Layout : app mobile d'une colonne (max 480px), barre d'onglets fixe en bas, cartes seulement pour les objets manipulés */
+:root{
+  --bg:#F1F4F1; --surface:#FFFFFF; --sunk:#E6ECE7; --fg:#1C2320; --muted:#5E6B65; --line:#D3DCD6;
+  --green:#2E5B4C; --green-ink:#FFFFFF; --red:#9A2A39; --red-soft:#F6E3E6; --green-soft:#DDEAE3; --silver:#8C9692;
+  --ok:#2E7D4F; --warn:#A8641A;
+  --f-display:"Young Serif", Georgia, "Times New Roman", serif;
+  --f-body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r:12px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141716; --surface:#1D2220; --sunk:#252B29; --fg:#ECEFED; --muted:#9BA7A1; --line:#323A37;
+  --green:#4F8B76; --green-ink:#0E1311; --red:#D06373; --red-soft:#3A2227; --green-soft:#21352E; --silver:#A9B3AF;
+  --ok:#5DBB86; --warn:#E0A055; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141716; --surface:#1D2220; --sunk:#252B29; --fg:#ECEFED; --muted:#9BA7A1; --line:#323A37;
+  --green:#4F8B76; --green-ink:#0E1311; --red:#D06373; --red-soft:#3A2227; --green-soft:#21352E; --silver:#A9B3AF;
+  --ok:#5DBB86; --warn:#E0A055; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+*{box-sizing:border-box}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.app{max-width:480px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px calc(92px + env(safe-area-inset-bottom,0px))}
+header.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-block:6px 14px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.brand{font-family:var(--f-display);font-size:24px;line-height:1}
+.brand small{font-family:var(--f-body);font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-left:6px}
+.demo{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--red);border:1px solid currentColor;border-radius:99px;padding:2px 8px;white-space:nowrap;background:transparent}
+h1{font-family:var(--f-display);font-weight:400;font-size:26px;margin:0 0 4px;text-wrap:balance}
+h2{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:22px 0 8px;font-weight:600}
+.sub{color:var(--muted);margin:0 0 14px}
+.stack{display:flex;flex-direction:column;gap:8px}
+.row{display:flex;align-items:center;gap:10px}
+.row.wrap{flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px}
+.kpi b{display:block;font-family:var(--f-display);font-weight:400;font-size:24px}
+.kpi span{font-size:12px;color:var(--muted)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 14px;font-weight:600}
+.btn.pri{background:var(--green);border-color:var(--green);color:var(--green-ink)}
+.btn.red{background:var(--red);border-color:var(--red);color:#fff}
+.btn.sm{padding:5px 10px;font-size:13px;border-radius:8px}
+.btn.ghost{background:transparent}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.block{width:100%;padding:13px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 12px;font-size:13px;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.svc{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.svc .p{font-weight:600}
+.tag{font-size:11px;color:var(--muted);display:block}
+.pill{font-size:11px;font-weight:600;border-radius:99px;padding:2px 8px;white-space:nowrap}
+.pill.ok{background:var(--green-soft);color:var(--ok)}
+.pill.todo{background:var(--red-soft);color:var(--red)}
+.pill.prov{background:var(--sunk);color:var(--warn)}
+.ticket{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.ticket .line{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px dashed var(--line)}
+.ticket .line:last-child{border-bottom:0}
+.ticket .tot{background:var(--sunk);font-weight:700;font-size:18px}
+.price-in{width:78px;text-align:right;border:1px solid var(--line);border-radius:8px;padding:5px 7px;background:var(--bg)}
+:where(input[type=text],input[type=tel],input[type=number],input[type=date],input[type=time],select,textarea){width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:var(--surface)}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);font-weight:500}
+label.f > *{color:var(--fg)}
+.x{border:0;background:transparent;color:var(--muted);font-size:18px;line-height:1;padding:4px 6px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg button{padding:12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);font-weight:600}
+.seg button[aria-pressed="true"]{border-color:var(--green);background:var(--green-soft)}
+.week{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.day{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:6px 0;text-align:center}
+.day small{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.day b{font-size:17px}
+.day i{display:block;height:5px;width:5px;border-radius:50%;margin:3px auto 0;background:transparent}
+.day.has i{background:var(--red)}
+.day[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.day[aria-pressed="true"] small{color:inherit;opacity:.75}
+.rdv{display:grid;grid-template-columns:54px 1fr;gap:10px;align-items:start}
+.rdv .h{font-family:var(--f-display);font-size:18px}
+.hist{border-left:2px solid var(--green);padding-left:12px;margin-left:4px}
+.hist .when{font-size:12px;color:var(--muted)}
+.prod-used{font-size:13px;color:var(--muted)}
+.prod-used b{color:var(--fg);font-weight:600}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+nav.tabs .in{max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav.tabs button{border:0;background:transparent;padding:10px 4px 12px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;font-weight:600;color:var(--muted)}
+nav.tabs button[aria-current="page"]{color:var(--green)}
+nav.tabs svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:30;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:480px;max-height:88%;overflow:auto;border-radius:18px 18px 0 0;padding:18px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet h1{font-size:22px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:99px;font-weight:600;z-index:40;font-size:14px;max-width:calc(100% - 32px)}
+.empty{color:var(--muted);text-align:center;padding:18px;border:1px dashed var(--line);border-radius:var(--r)}
+.smsbox{white-space:pre-wrap;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;user-select:text}
+.note{font-size:12px;color:var(--muted)}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.switch input{width:20px;height:20px;accent-color:var(--green)}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">L'atelier <span style="font-style:italic">by S.</span></div>
+    <button class="demo" id="bkBadge" hidden>Sauvegarde à faire</button>
+  </header>
+  <main id="view"></main>
+</div>
+
+<nav class="tabs" aria-label="Navigation">
+  <div class="in">
+    <button data-tab="agenda"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Agenda</button>
+    <button data-tab="caisse"><svg viewBox="0 0 24 24"><circle cx="6.5" cy="7" r="2.8"/><circle cx="6.5" cy="17" r="2.8"/><path d="M8.8 8.6 20 17M8.8 15.4 20 7"/></svg>Prestation</button>
+    <button data-tab="clientes"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1.2-3.8 4-5.5 7.5-5.5s6.3 1.7 7.5 5.5"/></svg>Clientes</button>
+    <button data-tab="ventes"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg>Ventes</button>
+    <button data-tab="tarifs"><svg viewBox="0 0 24 24"><path d="M3.5 12.5 12 4h7.5v7.5L11 20z"/><circle cx="15.5" cy="8" r="1.4"/></svg>Tarifs</button>
+  </div>
+</nav>
+
+<script>
+(function(){
+const KEY='atelier-caisse-v1';
+const CATS=['Coupes & coiffage','Coloration','Mèches & balayage','Autres prestations','Soins','Coiffures événementielles'];
+let uid=1000; const nid=p=>p+(++uid)+Math.random().toString(36).slice(2,5);
+
+function ymd(d){const z=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
+function nextWorkDay(d,n){let x=addDays(d,n);if(x.getDay()===0)x=addDays(x,1);return x}
+const today=new Date(); const T=ymd(today);
+const fmtE=n=>(Math.round(n*100)/100).toLocaleString('fr-FR',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2})+' €';
+const dLong=s=>new Date(s+'T12:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+const dShort=s=>new Date(s+'T12:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'});
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function svc(cat,name,price,type,o){return Object.assign({id:nid('s'),cat,name,price,type:type||'fixe',dur:60,supp:false,frange:false,mariee:false,hidden:false},o||{})}
+function seed(){
+  const S={
+    services:[
+      svc(CATS[0],'Brushing cheveux courts',24,'fixe',{dur:30}),svc(CATS[0],'Brushing mi-longs',30,'fixe',{dur:40}),svc(CATS[0],'Brushing longs',36,'fixe',{dur:45}),
+      svc(CATS[0],'Coupe + brushing courts',42,'fixe',{dur:45}),svc(CATS[0],'Coupe + brushing mi-longs',48,'fixe',{dur:60}),svc(CATS[0],'Coupe + brushing longs',54,'fixe',{dur:70}),
+      svc(CATS[0],'Coupe homme',26,'fixe',{dur:30}),svc(CATS[0],'Coupe enfant (-12 ans)',15,'fixe',{dur:20}),svc(CATS[0],'Frange seule',15,'fixe',{dur:15,frange:true}),
+      svc(CATS[1],'Racines + brushing',66,'fixe',{dur:90}),svc(CATS[1],'Racines + coupe + brushing',84,'fixe',{dur:105}),
+      svc(CATS[1],'Couleur tête entière + brushing',84,'fixe',{dur:105,supp:true}),svc(CATS[1],'Couleur tête entière + coupe + brushing',102,'fixe',{dur:120,supp:true}),
+      svc(CATS[1],'Patine / gloss',36,'fixe',{dur:30}),
+      svc(CATS[2],'Mèches demi-tête',72,'fixe',{dur:120,supp:true}),svc(CATS[2],'Mèches tête entière',96,'fixe',{dur:150,supp:true}),
+      svc(CATS[2],'Balayage (brushing compris)',102,'fixe',{dur:150,supp:true}),svc(CATS[2],'Balayage + coupe + brushing',126,'fixe',{dur:165,supp:true}),
+      svc(CATS[2],'Ombré hair',120,'min',{dur:180,supp:true}),
+      svc(CATS[3],'Permanente',84,'min',{dur:120}),svc(CATS[3],'Défrisage',84,'min',{dur:120}),svc(CATS[3],'Lissage',108,'min',{dur:180}),
+      svc(CATS[4],'Soin express',12,'fixe',{dur:10}),svc(CATS[4],'Soin profond',15,'range',{max:25,dur:20}),svc(CATS[4],'Soin reconstructeur',30,'fixe',{dur:30}),
+      svc(CATS[5],'Attache / coiffure',48,'min',{dur:45}),svc(CATS[5],'Chignon',66,'min',{dur:60}),
+      svc(CATS[5],'Coiffure mariée',108,'min',{dur:90,mariee:true}),svc(CATS[5],'Essai mariée + jour J',168,'min',{dur:180,mariee:true})
+    ],
+    products:[],
+    settings:{suppMin:15,suppMax:25,sundayPct:10,acomptePct:30,
+      sms:"Bonjour {prenom}, petit rappel de votre rendez-vous demain {jour} à {heure} à L'atelier by S. Pour décaler, répondez à ce message. À demain !"},
+    clients:[], visits:[], appts:[], lastBackup:null
+  };
+  return S;
+}
+let S; try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){S=null}
+if(!S||!S.services)S=seed();
+let saveFailed=false;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));saveFailed=false}catch(e){if(!saveFailed)toast("Impossible d'enregistrer sur ce téléphone : faites une sauvegarde");saveFailed=true}updBadge()}
+function updBadge(){const b=document.getElementById('bkBadge');if(!b)return;const has=S.visits.length||S.clients.length;const old=!S.lastBackup||(Date.now()-new Date(S.lastBackup).getTime())>7*864e5;b.hidden=!(has&&old)}
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+
+let tab='agenda', selDay=T, weekOff=0, openClient=null, catSel=CATS[0];
+let cart=newCart();
+function newCart(){return {aid:'',cid:'',lines:[],supp:false,suppVal:S?S.settings.suppMin:15,sunday:new Date().getDay()===0,override:'',pay:''}}
+
+const V=document.getElementById('view');
+const svcById=id=>S.services.find(x=>x.id===id);
+const cliById=id=>S.clients.find(x=>x.id===id);
+const cname=c=>c?c.first+' '+c.last:'Cliente de passage';
+
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2200)}
+function sheet(html,bind){const bg=document.createElement('div');bg.className='sheet-bg';bg.innerHTML='<div class="sheet" role="dialog" aria-modal="true">'+html+'</div>';
+  bg.addEventListener('click',e=>{if(e.target===bg)bg.remove()});document.body.appendChild(bg);const close=()=>bg.remove();bind&&bind(bg.firstChild,close);return close}
+
+function priceTag(s){return s.type==='min'?'dès '+fmtE(s.price):s.type==='range'?fmtE(s.price)+' à '+fmtE(s.max):fmtE(s.price)}
+
+/* ---------- Calculs ---------- */
+function calc(c){
+  const svcs=c.lines.filter(l=>l.kind==='svc');
+  const hasOther=svcs.some(l=>!svcById(l.sid)?.frange);
+  let sv=0; svcs.forEach(l=>{l.free=!!(svcById(l.sid)?.frange&&hasOther); if(!l.free)sv+=Number(l.price)||0});
+  const eligible=svcs.some(l=>svcById(l.sid)?.supp);
+  const supp=(c.supp&&eligible)?Number(c.suppVal)||0:0;
+  const sunday=c.sunday?Math.round((sv+supp)*S.settings.sundayPct)/100:0;
+  const sold=c.lines.filter(l=>l.kind==='prod'&&l.sold).reduce((a,l)=>a+(l.sale||0)*l.qty,0);
+  const auto=sv+supp+sunday+sold;
+  const total=c.override!==''&&!isNaN(Number(c.override))?Number(c.override):auto;
+  const mariee=svcs.some(l=>svcById(l.sid)?.mariee);
+  return {sv,supp,sunday,sold,auto,total,eligible,mariee,acompte:mariee?Math.round(total*S.settings.acomptePct)/100:0}
+}
+
+/* ---------- Agenda ---------- */
+function weekDays(){const base=addDays(today,weekOff*7);const dow=(base.getDay()+6)%7;const mon=addDays(base,-dow);return [0,1,2,3,4,5].map(i=>ymd(addDays(mon,i)))}
+function renderAgenda(){
+  const month=T.slice(0,7);
+  const caJ=S.visits.filter(v=>v.date===T).reduce((a,v)=>a+v.total,0);
+  const caM=S.visits.filter(v=>v.date.startsWith(month)).reduce((a,v)=>a+v.total,0);
+  const tm=ymd(nextWorkDay(today,1));
+  const rem=S.appts.filter(a=>a.date===tm).sort((a,b)=>a.time.localeCompare(b.time));
+  const days=weekDays();
+  const list=S.appts.filter(a=>a.date===selDay).sort((a,b)=>a.time.localeCompare(b.time));
+  V.innerHTML=`
+  <h1>Agenda</h1><p class="sub">${esc(dLong(T))}</p>
+  <div class="kpis"><div class="kpi"><span>Encaissé aujourd'hui</span><b class="num">${fmtE(caJ)}</b></div><div class="kpi"><span>Ce mois-ci</span><b class="num">${fmtE(caM)}</b></div></div>
+
+  <h2>Rappels SMS · ${esc(dLong(tm))}</h2>
+  <div class="stack">${rem.length?rem.map(a=>{const c=cliById(a.cid);return `<div class="card row"><div class="grow"><b>${esc(cname(c))}</b><span class="tag">${a.time.replace(':','h')} · ${esc(c?.tel||'pas de numéro')}</span></div>
+    ${a.sms?'<span class="pill ok">Envoyé</span>':`<button class="btn sm pri" data-sms="${a.id}">Préparer le SMS</button>`}</div>`}).join(''):'<div class="empty">Aucun rendez-vous demain, donc aucun rappel à envoyer.</div>'}</div>
+
+  <h2>Semaine</h2>
+  <div class="row" style="margin-bottom:8px"><button class="btn sm ghost" data-wk="-1" aria-label="Semaine précédente">‹</button><span class="grow" style="text-align:center;font-weight:600">${esc(new Date(days[0]+'T12:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long'}))} – ${esc(new Date(days[5]+'T12:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long'}))}</span><button class="btn sm ghost" data-wk="1" aria-label="Semaine suivante">›</button></div>
+  <div class="week">${days.map(d=>{const dt=new Date(d+'T12:00');return `<button class="day ${S.appts.some(a=>a.date===d)?'has':''}" data-day="${d}" aria-pressed="${d===selDay}"><small>${dt.toLocaleDateString('fr-FR',{weekday:'short'}).replace('.','')}</small><b>${dt.getDate()}</b><i></i></button>`}).join('')}</div>
+
+  <div class="row" style="margin-top:18px"><h2 class="grow" style="margin:0">${esc(dLong(selDay))}</h2><button class="btn sm pri" data-new>+ Rendez-vous</button></div>
+  <div class="stack" style="margin-top:8px">${list.length?list.map(a=>{const c=cliById(a.cid);const sv=a.sids.map(svcById).filter(Boolean);const dur=sv.reduce((x,s)=>x+s.dur,0);
+    return `<div class="card rdv"><div class="h num">${a.time.replace(':','h')}</div><div><b>${esc(cname(c))}</b><span class="tag">${esc(sv.map(s=>s.name).join(' + '))} · environ ${dur} min</span>
+    <div class="row wrap" style="margin-top:8px">${a.done?'<span class="pill ok">Encaissé</span>':`<button class="btn sm pri" data-start="${a.id}">Démarrer la prestation</button>`}${c?`<button class="btn sm" data-fiche="${c.id}">Fiche</button>`:''}${a.done?'':`<button class="btn sm ghost" data-del="${a.id}">Annuler</button>`}</div></div></div>`}).join(''):'<div class="empty">Aucun rendez-vous ce jour-là.</div>'}</div>`;
+  V.querySelectorAll('[data-wk]').forEach(b=>b.onclick=()=>{weekOff+=Number(b.dataset.wk);selDay=weekDays()[0];render()});
+  V.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{selDay=b.dataset.day;render()});
+  V.querySelectorAll('[data-sms]').forEach(b=>b.onclick=()=>smsSheet(b.dataset.sms));
+  V.querySelectorAll('[data-start]').forEach(b=>b.onclick=()=>{const a=S.appts.find(x=>x.id===b.dataset.start);cart=newCart();cart.cid=a.cid;cart.aid=a.id;a.sids.forEach(id=>addSvc(id,true));go('caisse')});
+  V.querySelectorAll('[data-fiche]').forEach(b=>b.onclick=()=>{openClient=b.dataset.fiche;go('clientes')});
+  V.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{if(!b.dataset.arm){b.dataset.arm='1';b.textContent='Confirmer l\'annulation';b.classList.add('red');return}S.appts=S.appts.filter(x=>x.id!==b.dataset.del);save();toast('Rendez-vous annulé');render()});
+  V.querySelector('[data-new]').onclick=()=>apptSheet();
+}
+function smsText(a){const c=cliById(a.cid);return S.settings.sms.replace('{prenom}',c?c.first:'').replace('{jour}',new Date(a.date+'T12:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})).replace('{heure}',a.time.replace(':','h'))}
+function smsSheet(id){const a=S.appts.find(x=>x.id===id);const c=cliById(a.cid);const txt=smsText(a);const tel=(c?.tel||'').replace(/\s/g,'');
+  sheet(`<h1>Rappel pour ${esc(c?.first||'')}</h1><p class="sub">Au ${esc(c?.tel||'?')}</p><div class="smsbox" id="smsTxt">${esc(txt)}</div>
+  <div class="stack" style="margin-top:14px"><a class="btn pri block" style="text-align:center;text-decoration:none" href="sms:${esc(tel)}?&body=${encodeURIComponent(txt)}" data-open>Ouvrir Messages avec ce texte</a>
+  <button class="btn block" data-copy>Copier le texte</button><button class="btn block ghost" data-done>Marquer comme envoyé</button></div>
+  <p class="note" style="margin-top:10px">Le premier bouton ouvre Messages avec le texte déjà écrit, et elle n'a plus qu'à appuyer sur Envoyer.</p>`,(el,close)=>{
+    el.querySelector('[data-copy]').onclick=()=>{try{navigator.clipboard.writeText(txt).then(()=>toast('Texte copié'),()=>selectTxt())}catch(e){selectTxt()}};
+    function selectTxt(){const r=document.createRange();r.selectNodeContents(el.querySelector('#smsTxt'));const s=getSelection();s.removeAllRanges();s.addRange(r);toast('Texte sélectionné')}
+    el.querySelector('[data-done]').onclick=()=>{a.sms=true;save();close();toast('Rappel marqué comme envoyé');render()};
+  })}
+function apptSheet(){
+  if(!S.clients.length){toast('Créez d\'abord la fiche de la cliente');openClient=null;go('clientes');return}
+  let picked=[];
+  sheet(`<h1>Nouveau rendez-vous</h1><div class="stack">
+  <label class="f">Cliente<select id="apC">${S.clients.map(c=>`<option value="${c.id}">${esc(cname(c))}</option>`).join('')}</select></label>
+  <div class="row"><label class="f grow">Date<input type="date" id="apD" value="${selDay}"></label><label class="f grow">Heure<input type="time" id="apT" value="10:00" step="900"></label></div>
+  <label class="f">Prestations prévues<select id="apS"><option value="">Ajouter une prestation…</option>${CATS.map(cat=>`<optgroup label="${esc(cat)}">${S.services.filter(s=>s.cat===cat&&!s.hidden).map(s=>`<option value="${s.id}">${esc(s.name)} (${s.dur} min)</option>`).join('')}</optgroup>`).join('')}</select></label>
+  <div id="apL" class="stack"></div>
+  <button class="btn pri block" id="apOk">Enregistrer le rendez-vous</button></div>`,(el,close)=>{
+    const L=el.querySelector('#apL');
+    const draw=()=>{L.innerHTML=picked.map((id,i)=>`<div class="row card" style="padding:8px 12px"><span class="grow">${esc(svcById(id).name)}</span><button class="x" data-rm="${i}" aria-label="Retirer">×</button></div>`).join('')+(picked.length?`<p class="note">Durée estimée : ${picked.reduce((a,id)=>a+svcById(id).dur,0)} min</p>`:'');
+      L.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{picked.splice(Number(b.dataset.rm),1);draw()})};
+    el.querySelector('#apS').onchange=e=>{if(e.target.value){picked.push(e.target.value);e.target.value='';draw()}};
+    el.querySelector('#apOk').onclick=()=>{const d=el.querySelector('#apD').value,t=el.querySelector('#apT').value;if(!d||!t||!picked.length){toast('Choisissez une date, une heure et au moins une prestation');return}
+      S.appts.push({id:nid('a'),cid:el.querySelector('#apC').value,date:d,time:t,sids:picked,sms:false});selDay=d;save();close();toast('Rendez-vous enregistré');render()};
+  })}
+
+/* ---------- Prestation / caisse ---------- */
+function addSvc(id,silent){const s=svcById(id);cart.lines.push({kind:'svc',sid:id,name:s.name,price:s.price,lid:nid('l')});if(!silent)toast(s.name+' ajouté')}
+function renderCaisse(){
+  const r=calc(cart);const c=cliById(cart.cid);
+  const svcs=S.services.filter(s=>s.cat===catSel&&!s.hidden);
+  const last=c?S.visits.filter(v=>v.cid===c.id).sort((a,b)=>b.date.localeCompare(a.date))[0]:null;
+  V.innerHTML=`
+  <h1>Prestation</h1><p class="sub">Choisissez les prestations : l'estimation se calcule au fur et à mesure.</p>
+  <label class="f">Cliente<select id="cCli"><option value="">Cliente de passage</option>${S.clients.map(x=>`<option value="${x.id}" ${x.id===cart.cid?'selected':''}>${esc(cname(x))}</option>`).join('')}</select></label>
+  ${c&&c.notes?`<p class="note" style="margin-top:6px">Note : ${esc(c.notes)}</p>`:''}
+  ${last&&!cart.lines.length?`<button class="btn block" style="margin-top:8px" id="redo">Refaire comme le ${esc(dShort(last.date))}</button>`:''}
+
+  <h2>Prestations</h2>
+  <div class="chips" role="group" aria-label="Catégories">${CATS.map(k=>`<button class="chip" data-cat="${esc(k)}" aria-pressed="${k===catSel}">${esc(k)}</button>`).join('')}</div>
+  <div class="stack" style="margin-top:8px">${svcs.map(s=>`<button class="svc" data-add="${s.id}"><span class="grow">${esc(s.name)}<span class="tag">${s.dur} min${s.frange?' · offerte avec une autre prestation':''}${s.supp?' · supplément cheveux longs possible':''}</span></span><span class="p num">${priceTag(s)}</span><span aria-hidden="true" style="color:var(--green);font-size:20px">+</span></button>`).join('')}</div>
+
+  <h2>Estimation</h2>
+  <div class="ticket">
+    ${cart.lines.filter(l=>l.kind==='svc').map(l=>{const s=svcById(l.sid);const edit=s&&s.type!=='fixe';return `<div class="line"><span class="grow">${esc(l.name)}${s?.type==='min'?`<span class="tag">À partir de ${fmtE(s.price)}</span>`:s?.type==='range'?`<span class="tag">Entre ${fmtE(s.price)} et ${fmtE(s.max)}</span>`:''}${l.free?'<span class="tag" style="color:var(--ok)">Offerte</span>':''}</span>
+      ${edit&&!l.free?`<input class="price-in num" type="number" inputmode="decimal" id="pr-${l.lid}" data-price="${l.lid}" value="${l.price}" min="${s.price}" ${s.max?`max="${s.max}"`:''} aria-label="Prix">`:`<span class="num">${l.free?'0 €':fmtE(l.price)}</span>`}
+      <button class="x" data-rml="${l.lid}" aria-label="Retirer">×</button></div>`}).join('')||'<div class="line"><span class="note">Aucune prestation pour l\'instant.</span></div>'}
+    ${r.eligible?`<div class="line"><label class="row grow" style="gap:8px"><input type="checkbox" id="cSupp" ${cart.supp?'checked':''} style="width:18px;height:18px;accent-color:var(--green)"> Supplément cheveux très longs / épais</label>${cart.supp?`<input class="price-in num" type="number" id="cSuppV" value="${cart.suppVal}" min="${S.settings.suppMin}" max="${S.settings.suppMax}" aria-label="Montant du supplément">`:`<span class="tag">${S.settings.suppMin} à ${S.settings.suppMax} €</span>`}</div>`:''}
+    <div class="line"><label class="row grow" style="gap:8px"><input type="checkbox" id="cSun" ${cart.sunday?'checked':''} style="width:18px;height:18px;accent-color:var(--green)"> Dimanche ou jour férié (+${S.settings.sundayPct} %)</label><span class="num">${r.sunday?fmtE(r.sunday):''}</span></div>
+    ${cart.lines.filter(l=>l.kind==='prod'&&l.sold).map(l=>`<div class="line"><span class="grow">${esc(l.name)} <span class="tag">Vente · ${l.qty} × ${fmtE(l.sale)}</span></span><span class="num">${fmtE(l.sale*l.qty)}</span><button class="x" data-rml="${l.lid}" aria-label="Retirer">×</button></div>`).join('')}
+    <div class="line tot"><span class="grow">Total</span><input class="price-in num" style="width:100px;font-weight:700" type="number" inputmode="decimal" id="cOver" value="${cart.override!==''?cart.override:r.auto}" aria-label="Total"></div>
+    ${r.mariee?`<div class="line"><span class="grow">Acompte à la réservation (${S.settings.acomptePct} %)</span><span class="num">${fmtE(r.acompte)}</span></div>`:''}
+  </div>
+  ${cart.override!==''&&Number(cart.override)!==r.auto?`<p class="note">Total modifié à la main (calcul : ${fmtE(r.auto)}). <button class="btn sm ghost" id="resetOver">Revenir au calcul</button></p>`:''}
+
+  <h2>Produits utilisés</h2>
+  <div class="stack">${cart.lines.filter(l=>l.kind==='prod'&&!l.sold).map(l=>`<div class="card row" style="padding:8px 12px"><span class="grow">${esc(l.name)}</span><input class="price-in num" type="number" id="q-${l.lid}" data-qty="${l.lid}" value="${l.qty}" aria-label="Quantité"><span class="tag" style="width:34px">${esc(l.unit)}</span><button class="x" data-rml="${l.lid}" aria-label="Retirer">×</button></div>`).join('')}
+  <div class="row"><select id="cProd" class="grow"><option value="">Noter un produit utilisé…</option>${S.products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div>
+  <div class="row"><select id="cSell" class="grow"><option value="">Vendre un produit…</option>${S.products.filter(p=>p.sale).map(p=>`<option value="${p.id}">${esc(p.name)} · ${fmtE(p.sale)}</option>`).join('')}</select></div></div>
+
+  <h2>Paiement</h2>
+  <div class="seg"><button data-pay="Espèces" aria-pressed="${cart.pay==='Espèces'}">Espèces</button><button data-pay="Wero" aria-pressed="${cart.pay==='Wero'}">Wero</button></div>
+  <button class="btn pri block" style="margin-top:12px" id="cPay" ${!cart.lines.some(l=>l.kind==='svc'||l.sold)||!cart.pay?'disabled':''}>Encaisser ${fmtE(r.total)}</button>
+  ${cart.lines.length?'<button class="btn ghost block" style="margin-top:6px" id="cClear">Tout effacer</button>':''}`;
+
+  V.querySelector('#cCli').onchange=e=>{cart.cid=e.target.value;render()};
+  const redo=V.querySelector('#redo'); if(redo)redo.onclick=()=>{last.lines.forEach(l=>{if(l.kind==='svc'&&svcById(l.sid))cart.lines.push({...l,lid:nid('l')});else if(l.kind==='prod'&&!l.sold)cart.lines.push({...l,lid:nid('l')})});toast('Prestations et produits repris');render()};
+  V.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{catSel=b.dataset.cat;render()});
+  V.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{addSvc(b.dataset.add);render()});
+  V.querySelectorAll('[data-rml]').forEach(b=>b.onclick=()=>{cart.lines=cart.lines.filter(l=>l.lid!==b.dataset.rml);render()});
+  V.querySelectorAll('[data-price]').forEach(i=>i.onchange=()=>{const l=cart.lines.find(x=>x.lid===i.dataset.price);const s=svcById(l.sid);let v=Number(i.value)||s.price;if(v<s.price){v=s.price;toast('Minimum '+fmtE(s.price))}if(s.max&&v>s.max){v=s.max;toast('Maximum '+fmtE(s.max))}l.price=v;cart.override='';render()});
+  V.querySelectorAll('[data-qty]').forEach(i=>i.onchange=()=>{cart.lines.find(x=>x.lid===i.dataset.qty).qty=Number(i.value)||0;render()});
+  const sp=V.querySelector('#cSupp'); if(sp)sp.onchange=()=>{cart.supp=sp.checked;cart.override='';render()};
+  const sv=V.querySelector('#cSuppV'); if(sv)sv.onchange=()=>{let v=Number(sv.value);v=Math.min(S.settings.suppMax,Math.max(S.settings.suppMin,v||S.settings.suppMin));cart.suppVal=v;cart.override='';render()};
+  V.querySelector('#cSun').onchange=e=>{cart.sunday=e.target.checked;cart.override='';render()};
+  V.querySelector('#cOver').onchange=e=>{cart.override=e.target.value===''?'':Number(e.target.value);render()};
+  const ro=V.querySelector('#resetOver'); if(ro)ro.onclick=()=>{cart.override='';render()};
+  V.querySelector('#cProd').onchange=e=>{const p=S.products.find(x=>x.id===e.target.value);if(p){cart.lines.push({kind:'prod',pid:p.id,name:p.name,qty:p.unit==='pièce'?1:30,unit:p.unit,sold:false,lid:nid('l')});render()}};
+  V.querySelector('#cSell').onchange=e=>{const p=S.products.find(x=>x.id===e.target.value);if(p){cart.lines.push({kind:'prod',pid:p.id,name:p.name,qty:1,unit:p.unit,sold:true,sale:p.sale,lid:nid('l')});cart.override='';render()}};
+  V.querySelectorAll('[data-pay]').forEach(b=>b.onclick=()=>{cart.pay=b.dataset.pay;render()});
+  const clr=V.querySelector('#cClear'); if(clr)clr.onclick=()=>{cart=newCart();render()};
+  V.querySelector('#cPay').onclick=()=>{const r2=calc(cart);
+    S.visits.push({id:nid('v'),cid:cart.cid||null,date:T,lines:cart.lines.map(l=>({...l})),supp:r2.supp,sunday:cart.sunday,total:r2.total,pay:cart.pay});
+    const ap=S.appts.find(x=>x.id===cart.aid);if(ap)ap.done=true;
+    save();const who=cliById(cart.cid);cart=newCart();toast('Encaissé · '+fmtE(r2.total)+(who?' · ajouté à la fiche de '+who.first:''));render()};
+}
+
+/* ---------- Clientes ---------- */
+function renderClientes(){
+  if(openClient){return renderFiche(cliById(openClient))}
+  V.innerHTML=`<h1>Clientes</h1><p class="sub">${S.clients.length} fiche${S.clients.length>1?'s':''}</p>
+  <input type="text" id="q" placeholder="Rechercher un nom ou un numéro" aria-label="Rechercher">
+  <div class="stack" id="cl" style="margin-top:10px"></div>
+  <button class="btn pri block" style="margin-top:12px" id="addC">+ Nouvelle cliente</button>`;
+  const draw=q=>{q=(q||'').toLowerCase();V.querySelector('#cl').innerHTML=S.clients.filter(c=>(cname(c)+' '+c.tel).toLowerCase().includes(q)).map(c=>{const vs=S.visits.filter(v=>v.cid===c.id).sort((a,b)=>b.date.localeCompare(a.date));
+    return `<button class="svc" data-open="${c.id}"><span class="grow"><b>${esc(cname(c))}</b><span class="tag">${vs.length?'Dernier passage le '+esc(dShort(vs[0].date)):'Pas encore venue'} · ${esc(c.tel)}</span></span><span aria-hidden="true">›</span></button>`}).join('')||(S.clients.length?'<div class="empty">Aucune cliente trouvée.</div>':'<div class="empty">Aucune fiche pour l\'instant. Créez la première avec le bouton ci-dessous.</div>');
+    V.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{openClient=b.dataset.open;render()})};
+  draw(); V.querySelector('#q').oninput=e=>draw(e.target.value);
+  V.querySelector('#addC').onclick=()=>clientSheet();
+}
+function clientSheet(c){const isNew=!c;c=c||{id:nid('c'),first:'',last:'',tel:'',notes:''};
+  sheet(`<h1>${isNew?'Nouvelle cliente':'Modifier la fiche'}</h1><div class="stack">
+  <div class="row"><label class="f grow">Prénom<input type="text" id="fF" value="${esc(c.first)}"></label><label class="f grow">Nom<input type="text" id="fL" value="${esc(c.last)}"></label></div>
+  <label class="f">Téléphone (pour le rappel SMS)<input type="tel" id="fT" value="${esc(c.tel)}"></label>
+  <label class="f">Notes (type de cheveux, allergies, préférences)<textarea id="fN" rows="3">${esc(c.notes)}</textarea></label>
+  <button class="btn pri block" id="fOk">Enregistrer</button>${isNew?'':'<button class="btn ghost block" id="fDel" style="color:var(--red)">Supprimer cette fiche</button>'}</div>`,(el,close)=>{
+    const del=el.querySelector('#fDel');if(del)del.onclick=()=>{if(!del.dataset.arm){del.dataset.arm='1';del.textContent='Toucher encore : la fiche et ses rendez-vous seront supprimés';return}
+      S.clients=S.clients.filter(x=>x.id!==c.id);S.appts=S.appts.filter(a=>a.cid!==c.id);S.visits.forEach(v=>{if(v.cid===c.id)v.cid=null});save();close();openClient=null;toast('Fiche supprimée');render()};
+    el.querySelector('#fOk').onclick=()=>{const f=el.querySelector('#fF').value.trim();if(!f){toast('Indiquez au moins le prénom');return}
+      Object.assign(c,{first:f,last:el.querySelector('#fL').value.trim(),tel:el.querySelector('#fT').value.trim(),notes:el.querySelector('#fN').value.trim()});
+      if(isNew)S.clients.push(c);save();close();openClient=c.id;toast('Fiche enregistrée');render()}})}
+function renderFiche(c){
+  if(!c){openClient=null;return renderClientes()}
+  const vs=S.visits.filter(v=>v.cid===c.id).sort((a,b)=>b.date.localeCompare(a.date));
+  const next=S.appts.filter(a=>a.cid===c.id&&a.date>=T).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  V.innerHTML=`<button class="btn sm ghost" id="back" style="margin-bottom:8px">‹ Toutes les clientes</button>
+  <h1>${esc(cname(c))}</h1><p class="sub">${esc(c.tel)}</p>
+  ${c.notes?`<div class="card">${esc(c.notes)}</div>`:''}
+  <div class="row wrap" style="margin-top:10px"><button class="btn pri" id="newP">Nouvelle prestation</button><button class="btn" id="edit">Modifier</button></div>
+  <h2>Prochains rendez-vous</h2>
+  <div class="stack">${next.length?next.map(a=>`<div class="card row"><span class="grow"><b>${esc(dLong(a.date))}</b> à ${a.time.replace(':','h')}<span class="tag">${esc(a.sids.map(id=>svcById(id)?.name).filter(Boolean).join(' + '))}</span></span>${a.sms?'<span class="pill ok">SMS envoyé</span>':'<span class="pill todo">SMS à envoyer</span>'}</div>`).join(''):'<div class="empty">Aucun rendez-vous prévu.</div>'}</div>
+  <h2>Historique · ${vs.length} passage${vs.length>1?'s':''}</h2>
+  <div class="stack">${vs.map(v=>{const sv=v.lines.filter(l=>l.kind==='svc');const used=v.lines.filter(l=>l.kind==='prod'&&!l.sold);const sold=v.lines.filter(l=>l.kind==='prod'&&l.sold);
+    return `<div class="hist"><div class="when">${esc(dShort(v.date))} · ${fmtE(v.total)} · ${esc(v.pay)}</div><b>${esc(sv.map(l=>l.name).join(' + ')||'Vente de produits')}</b>
+    ${used.length?`<div class="prod-used">Produits : ${used.map(l=>`<b>${esc(l.name)}</b> ${l.qty} ${esc(l.unit)}`).join(', ')}</div>`:''}
+    ${sold.length?`<div class="prod-used">Acheté : ${sold.map(l=>esc(l.name)).join(', ')}</div>`:''}
+    <button class="btn sm" style="margin-top:6px" data-redo="${v.id}">Refaire cette prestation</button></div>`}).join('')||'<div class="empty">Pas encore de passage enregistré.</div>'}</div>`;
+  V.querySelector('#back').onclick=()=>{openClient=null;render()};
+  V.querySelector('#edit').onclick=()=>clientSheet(c);
+  V.querySelector('#newP').onclick=()=>{cart=newCart();cart.cid=c.id;go('caisse')};
+  V.querySelectorAll('[data-redo]').forEach(b=>b.onclick=()=>{const v=S.visits.find(x=>x.id===b.dataset.redo);cart=newCart();cart.cid=c.id;
+    v.lines.forEach(l=>{if((l.kind==='svc'&&svcById(l.sid))||(l.kind==='prod'&&!l.sold))cart.lines.push({...l,lid:nid('l')})});toast('Prestation reprise du '+dShort(v.date));go('caisse')});
+}
+
+/* ---------- Tarifs ---------- */
+let tarCat=CATS[0];
+function renderTarifs(){
+  const list=S.services.filter(s=>s.cat===tarCat);
+  V.innerHTML=`<h1>Tarifs</h1><p class="sub">Touchez un prix pour le modifier. Il est enregistré tout de suite.</p>
+  <div class="chips" role="group" aria-label="Catégories">${CATS.map(k=>`<button class="chip" data-tc="${esc(k)}" aria-pressed="${k===tarCat}">${esc(k)}</button>`).join('')}</div>
+  <div class="stack" style="margin-top:8px">${list.map(s=>`<div class="card" style="${s.hidden?'opacity:.55':''}"><div class="row"><span class="grow"><b>${esc(s.name)}</b><span class="tag">${s.type==='min'?'À partir de':s.type==='range'?'Fourchette':'Prix fixe'} · ${s.dur} min${s.hidden?' · masquée':''}</span></span>
+    <input class="price-in num" type="number" inputmode="decimal" id="t-${s.id}" data-tp="${s.id}" value="${s.price}" aria-label="Prix de ${esc(s.name)}">${s.type==='range'?`<span class="tag">à</span><input class="price-in num" type="number" id="tm-${s.id}" data-tm="${s.id}" value="${s.max}" aria-label="Prix maximum">`:''}</div>
+    <div class="row" style="margin-top:6px"><button class="btn sm ghost" data-edit="${s.id}">Modifier</button><button class="btn sm ghost" data-hide="${s.id}">${s.hidden?'Afficher':'Masquer'}</button></div></div>`).join('')}</div>
+  <button class="btn block" style="margin-top:10px" id="addS">+ Ajouter une prestation</button>
+
+  <h2>Règles</h2>
+  <div class="stack">
+    <div class="switch"><span class="grow">Supplément cheveux très longs / épais</span><input class="price-in num" type="number" id="sMin" value="${S.settings.suppMin}" aria-label="Minimum"><span class="tag">à</span><input class="price-in num" type="number" id="sMax" value="${S.settings.suppMax}" aria-label="Maximum"></div>
+    <div class="switch"><span class="grow">Majoration dimanche et jours fériés (%) <span class="pill prov">provisoire</span></span><input class="price-in num" type="number" id="sSun" value="${S.settings.sundayPct}" aria-label="Majoration"></div>
+    <div class="switch"><span class="grow">Acompte prestations mariée (%)</span><input class="price-in num" type="number" id="sAc" value="${S.settings.acomptePct}" aria-label="Acompte"></div>
+    <label class="f">Message du rappel SMS <span class="note">({prenom}, {jour} et {heure} sont remplacés automatiquement)</span><textarea id="sSms" rows="3">${esc(S.settings.sms)}</textarea></label>
+  </div>
+
+  <h2>Produits</h2>
+  <div class="stack">${S.products.map(p=>`<div class="card row"><span class="grow"><b>${esc(p.name)}</b><span class="tag">${esc(p.type)} · en ${esc(p.unit)}${p.sale?'':' · non vendu'}</span></span><input class="price-in num" type="number" id="pp-${p.id}" data-pp="${p.id}" value="${p.sale??''}" placeholder="—" aria-label="Prix de vente"></div>`).join('')}
+  <button class="btn block" id="addP">+ Ajouter un produit</button>
+  <p class="note">${S.products.length?'':'Aucun produit pour l\'instant. '}Laissez le prix vide pour un produit utilisé mais pas vendu.</p></div>
+
+  <h2>Sauvegarde</h2>
+  <div class="card stack">
+    <p style="margin:0">Les données restent sur ce téléphone. Faites une sauvegarde chaque semaine et gardez le fichier ailleurs (e-mail, Drive, ordinateur).</p>
+    <p class="note" style="margin:0">${S.lastBackup?'Dernière sauvegarde : '+esc(new Date(S.lastBackup).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})):'Aucune sauvegarde pour l\'instant.'}</p>
+    <button class="btn pri block" id="bkOut">Enregistrer une sauvegarde</button>
+    <label class="btn block" style="text-align:center">Restaurer une sauvegarde<input type="file" id="bkIn" accept="application/json,.json" hidden></label>
+  </div>`;
+
+  V.querySelectorAll('[data-tc]').forEach(b=>b.onclick=()=>{tarCat=b.dataset.tc;render()});
+  V.querySelectorAll('[data-tp]').forEach(i=>i.onchange=()=>{const s=svcById(i.dataset.tp);s.price=Math.max(0,Number(i.value)||0);save();toast(s.name+' : '+fmtE(s.price))});
+  V.querySelectorAll('[data-tm]').forEach(i=>i.onchange=()=>{const s=svcById(i.dataset.tm);s.max=Math.max(s.price,Number(i.value)||s.price);save();toast('Maximum : '+fmtE(s.max))});
+  V.querySelectorAll('[data-hide]').forEach(b=>b.onclick=()=>{const s=svcById(b.dataset.hide);s.hidden=!s.hidden;save();render()});
+  V.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>svcSheet(svcById(b.dataset.edit)));
+  V.querySelector('#addS').onclick=()=>svcSheet();
+  const st=(id,k)=>V.querySelector(id).onchange=e=>{S.settings[k]=Number(e.target.value)||0;save();toast('Règle enregistrée')};
+  st('#sMin','suppMin');st('#sMax','suppMax');st('#sSun','sundayPct');st('#sAc','acomptePct');
+  V.querySelector('#sSms').onchange=e=>{S.settings.sms=e.target.value;save();toast('Message enregistré')};
+  V.querySelectorAll('[data-pp]').forEach(i=>i.onchange=()=>{const p=S.products.find(x=>x.id===i.dataset.pp);p.sale=i.value===''?null:Number(i.value);save();render()});
+  V.querySelector('#addP').onclick=()=>prodSheet();
+  V.querySelector('#bkOut').onclick=backupOut;
+  V.querySelector('#bkIn').onchange=e=>{const f=e.target.files[0];if(f)backupIn(f);e.target.value=''};
+}
+function svcSheet(s){const isNew=!s;s=s||svc(tarCat,'',0,'fixe');
+  sheet(`<h1>${isNew?'Nouvelle prestation':'Modifier la prestation'}</h1><div class="stack">
+  <label class="f">Nom<input type="text" id="eN" value="${esc(s.name)}"></label>
+  <label class="f">Catégorie<select id="eC">${CATS.map(k=>`<option ${k===s.cat?'selected':''}>${esc(k)}</option>`).join('')}</select></label>
+  <label class="f">Type de prix<select id="eT"><option value="fixe" ${s.type==='fixe'?'selected':''}>Prix fixe</option><option value="min" ${s.type==='min'?'selected':''}>À partir de</option><option value="range" ${s.type==='range'?'selected':''}>Fourchette</option></select></label>
+  <div class="row"><label class="f grow">Prix (€)<input type="number" id="eP" value="${s.price}"></label><label class="f grow">Max (fourchette)<input type="number" id="eM" value="${s.max??''}"></label><label class="f grow">Durée (min)<input type="number" id="eD" value="${s.dur}"></label></div>
+  <label class="switch"><span>Supplément cheveux longs possible</span><input type="checkbox" id="eS" ${s.supp?'checked':''}></label>
+  <label class="switch"><span>Offerte avec une autre prestation</span><input type="checkbox" id="eF" ${s.frange?'checked':''}></label>
+  <label class="switch"><span>Prestation mariée (acompte)</span><input type="checkbox" id="eMa" ${s.mariee?'checked':''}></label>
+  <button class="btn pri block" id="eOk">Enregistrer</button></div>`,(el,close)=>{
+    el.querySelector('#eOk').onclick=()=>{const n=el.querySelector('#eN').value.trim();if(!n){toast('Donnez un nom à la prestation');return}
+      const t=el.querySelector('#eT').value,p=Number(el.querySelector('#eP').value)||0,m=Number(el.querySelector('#eM').value)||p;
+      Object.assign(s,{name:n,cat:el.querySelector('#eC').value,type:t,price:p,max:t==='range'?Math.max(p,m):undefined,dur:Number(el.querySelector('#eD').value)||30,supp:el.querySelector('#eS').checked,frange:el.querySelector('#eF').checked,mariee:el.querySelector('#eMa').checked});
+      if(isNew)S.services.push(s);tarCat=s.cat;save();close();toast('Prestation enregistrée');render()}})}
+function prodSheet(){
+  sheet(`<h1>Nouveau produit</h1><div class="stack">
+  <label class="f">Nom<input type="text" id="pN" placeholder="ex. Coloration 7.1 blond cendré"></label>
+  <div class="row"><label class="f grow">Type<input type="text" id="pT" placeholder="Coloration, soin…"></label><label class="f grow">Unité<select id="pU"><option>ml</option><option>g</option><option>pièce</option></select></label></div>
+  <label class="f">Prix de vente (€, vide si non vendu)<input type="number" id="pS"></label>
+  <button class="btn pri block" id="pOk">Ajouter</button></div>`,(el,close)=>{
+    el.querySelector('#pOk').onclick=()=>{const n=el.querySelector('#pN').value.trim();if(!n){toast('Donnez un nom au produit');return}
+      const sv=el.querySelector('#pS').value;S.products.push({id:nid('p'),name:n,type:el.querySelector('#pT').value.trim()||'Produit',ref:'',unit:el.querySelector('#pU').value,sale:sv===''?null:Number(sv)});save();close();toast('Produit ajouté');render()}})}
+
+/* ---------- Sauvegarde ---------- */
+async function backupOut(){
+  const name='atelier-sauvegarde-'+ymd(new Date())+'.json';
+  const blob=new Blob([JSON.stringify({app:'atelier-caisse',version:1,savedAt:new Date().toISOString(),data:S},null,1)],{type:'application/json'});
+  let ok=false;
+  try{const file=new File([blob],name,{type:'application/json'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});ok=true}}catch(e){if(e&&e.name==='AbortError')return}
+  if(!ok){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);ok=true}
+  S.lastBackup=new Date().toISOString();save();toast('Sauvegarde enregistrée');render()}
+function backupIn(f){const rd=new FileReader();rd.onload=()=>{let j;try{j=JSON.parse(rd.result)}catch(e){toast('Ce fichier n\'est pas une sauvegarde valide');return}
+  const d=j&&j.data;if(!d||!Array.isArray(d.services)||!Array.isArray(d.clients)){toast('Ce fichier n\'est pas une sauvegarde de l\'atelier');return}
+  sheet(`<h1>Restaurer la sauvegarde ?</h1><p>Sauvegarde du ${esc(new Date(j.savedAt).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}))} : ${d.clients.length} clientes, ${d.visits.length} passages, ${d.appts.length} rendez-vous.</p><p class="note">Les données actuelles de ce téléphone seront remplacées.</p>
+  <div class="stack"><button class="btn red block" id="rsOk">Remplacer par cette sauvegarde</button><button class="btn block" id="rsNo">Annuler</button></div>`,(el,close)=>{
+    el.querySelector('#rsNo').onclick=close;
+    el.querySelector('#rsOk').onclick=()=>{S=d;S.lastBackup=S.lastBackup||j.savedAt;save();cart=newCart();openClient=null;close();toast('Sauvegarde restaurée');go('agenda')}})};rd.readAsText(f)}
+
+/* ---------- Ventes ---------- */
+let venteMonth=T.slice(0,7);
+function renderVentes(){
+  const vs=S.visits.filter(v=>v.date.startsWith(venteMonth)).sort((a,b)=>(b.date+b.id).localeCompare(a.date+a.id));
+  const sum=f=>vs.filter(f).reduce((a,v)=>a+v.total,0);
+  const caJ=S.visits.filter(v=>v.date===T).reduce((a,v)=>a+v.total,0);
+  const [y,m]=venteMonth.split('-').map(Number);
+  const label=new Date(y,m-1,15).toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+  const byDay={};vs.forEach(v=>(byDay[v.date]=byDay[v.date]||[]).push(v));
+  V.innerHTML=`<h1>Ventes</h1><p class="sub">Encaissé aujourd'hui : <b class="num">${fmtE(caJ)}</b></p>
+  <div class="row" style="margin-bottom:8px"><button class="btn sm ghost" data-mo="-1" aria-label="Mois précédent">‹</button><span class="grow" style="text-align:center;font-weight:600;text-transform:capitalize">${esc(label)}</span><button class="btn sm ghost" data-mo="1" aria-label="Mois suivant">›</button></div>
+  <div class="kpis"><div class="kpi"><span>Total du mois</span><b class="num">${fmtE(sum(()=>true))}</b></div><div class="kpi"><span>${vs.length} passage${vs.length>1?'s':''}</span><b class="num">${vs.length?fmtE(sum(()=>true)/vs.length):'0 €'}</b><span>en moyenne</span></div>
+  <div class="kpi"><span>Espèces</span><b class="num">${fmtE(sum(v=>v.pay==='Espèces'))}</b></div><div class="kpi"><span>Wero</span><b class="num">${fmtE(sum(v=>v.pay==='Wero'))}</b></div></div>
+  ${Object.keys(byDay).length?Object.keys(byDay).map(d=>`<h2>${esc(dLong(d))} · <span class="num">${fmtE(byDay[d].reduce((a,v)=>a+v.total,0))}</span></h2><div class="stack">${byDay[d].map(v=>{const c=cliById(v.cid);const sv=v.lines.filter(l=>l.kind==='svc').map(l=>l.name);const sold=v.lines.filter(l=>l.kind==='prod'&&l.sold).map(l=>l.name);
+    return `<div class="card row"><span class="grow"><b>${esc(cname(c))}</b><span class="tag">${esc(sv.concat(sold).join(' + ')||'—')} · ${esc(v.pay)}</span></span><span class="num" style="font-weight:600">${fmtE(v.total)}</span><button class="x" data-dv="${v.id}" aria-label="Supprimer cet encaissement">×</button></div>`}).join('')}</div>`).join(''):'<div class="empty" style="margin-top:14px">Aucun encaissement ce mois-ci.</div>'}`;
+  V.querySelectorAll('[data-mo]').forEach(b=>b.onclick=()=>{const d=new Date(y,m-1+Number(b.dataset.mo),15);venteMonth=ymd(d).slice(0,7);render()});
+  V.querySelectorAll('[data-dv]').forEach(b=>b.onclick=()=>{const v=S.visits.find(x=>x.id===b.dataset.dv);
+    sheet(`<h1>Supprimer cet encaissement ?</h1><p>${esc(cname(cliById(v.cid)))}, ${esc(dShort(v.date))} : ${fmtE(v.total)} (${esc(v.pay)}). Il disparaîtra aussi de l'historique de la cliente.</p><div class="stack"><button class="btn red block" id="dvOk">Supprimer</button><button class="btn block" id="dvNo">Garder</button></div>`,(el,close)=>{
+      el.querySelector('#dvNo').onclick=close;el.querySelector('#dvOk').onclick=()=>{S.visits=S.visits.filter(x=>x.id!==v.id);save();close();toast('Encaissement supprimé');render()}})});
+}
+
+/* ---------- Navigation ---------- */
+function go(t){tab=t;render();window.scrollTo(0,0)}
+function render(){
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===tab?'page':'false'));
+  ({agenda:renderAgenda,caisse:renderCaisse,clientes:renderClientes,ventes:renderVentes,tarifs:renderTarifs})[tab]();
+}
+document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>{if(b.dataset.tab==='clientes')openClient=null;go(b.dataset.tab)});
+document.getElementById('bkBadge').onclick=()=>go('tarifs');
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ymd(new Date())!==T)location.reload()});
+if('serviceWorker' in navigator&&window.isSecureContext){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+updBadge();
+render();
+})();
+</script>
+</body>
+</html>
