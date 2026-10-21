@@ -321,7 +321,7 @@ function renderCaisse(){
   const last=c?S.visits.filter(v=>v.cid===c.id).sort((a,b)=>b.date.localeCompare(a.date))[0]:null;
   V.innerHTML=`
   <h1>Prestation</h1><p class="sub">Touchez les prestations : le calcul et le prix à annoncer s'affichent en bas de l'écran.</p>
-  <label class="f">Cliente<select id="cCli"><option value="">Cliente de passage</option>${S.clients.map(x=>`<option value="${x.id}" ${x.id===cart.cid?'selected':''}>${esc(cname(x))}</option>`).join('')}</select></label>
+  <label class="f">Cliente<select id="cCli"><option value="" ${cart.cid?'':'selected'}>Cliente de passage</option>${S.clients.length?`<optgroup label="Clientes enregistrées (${S.clients.length})">${S.clients.slice().sort((a,b)=>cname(a).localeCompare(cname(b),'fr')).map(x=>`<option value="${x.id}" ${x.id===cart.cid?'selected':''}>${esc(cname(x))}${x.tel?' · '+esc(x.tel):''}</option>`).join('')}</optgroup>`:''}<option value="__new">+ Nouvelle cliente…</option></select></label>
   ${c&&c.notes?`<p class="note" style="margin-top:6px">Note : ${esc(c.notes)}</p>`:''}
   ${last&&!cart.lines.length?`<button class="btn block" style="margin-top:8px" id="redo">Refaire comme le ${esc(dShort(last.date))}</button>`:''}
 
@@ -355,7 +355,7 @@ function renderCaisse(){
   <button class="btn pri block" style="margin-top:12px" id="cPay" ${!cart.lines.some(l=>l.kind==='svc'||l.sold)||!cart.pay?'disabled':''}>Encaisser ${fmtE(r.total)}</button>
   ${cart.lines.length?'<button class="btn ghost block" style="margin-top:6px" id="cClear">Tout effacer</button>':''}`;
 
-  V.querySelector('#cCli').onchange=e=>{cart.cid=e.target.value;render()};
+  V.querySelector('#cCli').onchange=e=>{if(e.target.value==='__new'){e.target.value=cart.cid;clientSheet(null,c=>{cart.cid=c.id;render()});return}cart.cid=e.target.value;render()};
   const redo=V.querySelector('#redo'); if(redo)redo.onclick=()=>{last.lines.forEach(l=>{if(l.kind==='svc'&&svcById(l.sid))cart.lines.push({...l,lid:nid('l')});else if(l.kind==='prod'&&!l.sold)cart.lines.push({...l,lid:nid('l')})});toast('Prestations et produits repris');render()};
   V.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{catSel=b.dataset.cat;render()});
   V.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{addSvc(b.dataset.add,true);render();toast(svcById(b.dataset.add).name+' : '+fmtE(calc(cart).total)+' au total')});
@@ -393,7 +393,7 @@ function renderClientes(){
   draw(); V.querySelector('#q').oninput=e=>draw(e.target.value);
   V.querySelector('#addC').onclick=()=>clientSheet();
 }
-function clientSheet(c){const isNew=!c;c=c||{id:nid('c'),first:'',last:'',tel:'',notes:''};
+function clientSheet(c,onSaved){const isNew=!c;c=c||{id:nid('c'),first:'',last:'',tel:'',notes:''};
   sheet(`<h1>${isNew?'Nouvelle cliente':'Modifier la fiche'}</h1><div class="stack">
   <div class="row"><label class="f grow">Prénom<input type="text" id="fF" value="${esc(c.first)}"></label><label class="f grow">Nom<input type="text" id="fL" value="${esc(c.last)}"></label></div>
   <label class="f">Téléphone (pour le rappel SMS)<input type="tel" id="fT" value="${esc(c.tel)}"></label>
@@ -403,7 +403,7 @@ function clientSheet(c){const isNew=!c;c=c||{id:nid('c'),first:'',last:'',tel:''
       S.clients=S.clients.filter(x=>x.id!==c.id);S.appts=S.appts.filter(a=>a.cid!==c.id);S.visits.forEach(v=>{if(v.cid===c.id)v.cid=null});save();close();openClient=null;toast('Fiche supprimée');render()};
     el.querySelector('#fOk').onclick=()=>{const f=el.querySelector('#fF').value.trim();if(!f){toast('Indiquez au moins le prénom');return}
       Object.assign(c,{first:f,last:el.querySelector('#fL').value.trim(),tel:el.querySelector('#fT').value.trim(),notes:el.querySelector('#fN').value.trim()});
-      if(isNew)S.clients.push(c);save();close();openClient=c.id;toast('Fiche enregistrée');render()}})}
+      if(isNew)S.clients.push(c);save();close();toast('Fiche enregistrée');if(onSaved){onSaved(c)}else{openClient=c.id;render()}}})}
 function renderFiche(c){
   if(!c){openClient=null;return renderClientes()}
   const vs=S.visits.filter(v=>v.cid===c.id).sort((a,b)=>b.date.localeCompare(a.date));
