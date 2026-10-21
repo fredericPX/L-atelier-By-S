@@ -453,13 +453,25 @@ function renderClientes(){
   V.innerHTML=`<h1>Clientes</h1><p class="sub">${S.clients.length} fiche${S.clients.length>1?'s':''}</p>
   <input type="text" id="q" placeholder="Rechercher un nom ou un numéro" aria-label="Rechercher">
   <div class="stack" id="cl" style="margin-top:10px"></div>
-  <button class="btn pri block" style="margin-top:12px" id="addC">+ Nouvelle cliente</button>`;
+  <button class="btn pri block" style="margin-top:12px" id="addC">+ Nouvelle cliente</button>
+  ${CAN_PICK?'<button class="btn block" style="margin-top:8px" id="impC">Importer depuis les contacts du téléphone</button>':''}`;
   const draw=q=>{q=(q||'').toLowerCase();V.querySelector('#cl').innerHTML=S.clients.filter(c=>(cname(c)+' '+c.tel).toLowerCase().includes(q)).map(c=>{const vs=S.visits.filter(v=>v.cid===c.id).sort((a,b)=>b.date.localeCompare(a.date));
     return `<button class="svc" data-open="${c.id}"><span class="grow"><b>${esc(cname(c))}</b><span class="tag">${vs.length?'Dernier passage le '+esc(dShort(vs[0].date)):'Pas encore venue'} · ${esc(c.tel)}</span></span><span aria-hidden="true">›</span></button>`}).join('')||(S.clients.length?'<div class="empty">Aucune cliente trouvée.</div>':'<div class="empty">Aucune fiche pour l\'instant. Créez la première avec le bouton ci-dessous.</div>');
     V.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{openClient=b.dataset.open;render()})};
   draw(); V.querySelector('#q').oninput=e=>draw(e.target.value);
   V.querySelector('#addC').onclick=()=>clientSheet();
+  const imp=V.querySelector('#impC');if(imp)imp.onclick=importContacts;
 }
+const CAN_PICK=!!(navigator.contacts&&window.ContactsManager);
+async function importContacts(){
+  let picked;try{picked=await navigator.contacts.select(['name','tel'],{multiple:true})}catch(e){toast('Import annulé');return}
+  if(!picked||!picked.length)return;
+  const norm=t=>String(t||'').replace(/\D/g,'').replace(/^(262|33)/,'0');
+  const known=new Set(S.clients.map(c=>norm(c.tel)).filter(Boolean));let added=0,skipped=0;
+  picked.forEach(ct=>{const full=(ct.name&&ct.name[0]||'').trim();const tel=(ct.tel&&ct.tel[0]||'').trim();if(!full&&!tel)return;
+    if(tel&&known.has(norm(tel))){skipped++;return}
+    const parts=full.split(/\s+/);S.clients.push({id:nid('c'),first:parts.shift()||tel,last:parts.join(' '),tel,notes:''});if(tel)known.add(norm(tel));added++});
+  save();toast(added+' cliente'+(added>1?'s':'')+' importée'+(added>1?'s':'')+(skipped?' · '+skipped+' déjà présente'+(skipped>1?'s':''):''));render()}
 function clientSheet(c,onSaved){const isNew=!c;c=c||{id:nid('c'),first:'',last:'',tel:'',notes:''};
   sheet(`<h1>${isNew?'Nouvelle cliente':'Modifier la fiche'}</h1><div class="stack">
   <div class="row"><label class="f grow">Prénom<input type="text" id="fF" value="${esc(c.first)}"></label><label class="f grow">Nom<input type="text" id="fL" value="${esc(c.last)}"></label></div>

@@ -1,5 +1,5 @@
 // Garde l'app disponible hors connexion. Changer VERSION à chaque mise à jour.
-const VERSION = 'atelier-v7';
+const VERSION = 'atelier-v8';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
