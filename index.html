@@ -111,6 +111,20 @@ label.f > *{color:var(--fg)}
 .calc-sum{display:flex;flex-direction:column;gap:2px;padding:10px 12px;background:var(--sunk);font-size:14px}
 .calc-sum div{display:flex;justify-content:space-between;gap:10px}
 .calc-sum div span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+.wero{margin-top:10px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:16px;border:2px solid var(--green);border-radius:14px;background:var(--green-soft)}
+.wero-tel{font-family:var(--f-display);font-weight:400;font-size:34px;letter-spacing:.02em;user-select:text}
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cat-tile{display:flex;align-items:center;gap:10px;min-height:76px;padding:12px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);text-align:left;position:relative;box-shadow:0 3px 0 var(--line)}
+.cat-tile b{display:block;font-size:14px;line-height:1.2}
+.cat-tx{min-width:0;flex:1}
+.cat-ic{width:40px;height:40px;border-radius:50%;background:var(--green);color:#fff;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.cat-ic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.cat-tile.on{border-color:var(--red);box-shadow:0 3px 0 var(--red)}
+.cat-tile.on .cat-ic{background:var(--red)}
+.cat-tile.on .tag{color:var(--red-text);font-weight:600}
+.cat-n{position:absolute;top:-7px;right:-7px;min-width:22px;height:22px;border-radius:11px;background:var(--red);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 6px;border:2px solid var(--bg)}
+.svc.chosen{border-color:var(--red);background:var(--red-soft)}
+.svc.chosen .plus{background:var(--red)}
 .acc{border:1px solid var(--line);border-left:4px solid var(--cat);border-radius:12px;background:var(--surface);overflow:hidden}
 .acc-h{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:10px;width:100%;padding:14px 14px;font-size:16px}
 .acc-h b{font-weight:700}
@@ -196,7 +210,7 @@ function seed(){
       svc(CATS[5],'Coiffure mariée',108,'min',{dur:90,mariee:true}),svc(CATS[5],'Essai mariée + jour J',168,'min',{dur:180,mariee:true})
     ],
     products:[],
-    settings:{suppMin:15,suppMax:25,sundayPct:10,acomptePct:30,
+    settings:{suppMin:15,suppMax:25,sundayPct:10,acomptePct:30,weroTel:'0692009270',
       sms:"Bonjour {prenom}, petit rappel de votre rendez-vous demain {jour} à {heure} à L'atelier by S. Pour décaler, répondez à ce message. À demain !"},
     clients:[], visits:[], appts:[], lastBackup:null
   };
@@ -309,6 +323,43 @@ function apptSheet(){
 
 /* ---------- Prestation / caisse ---------- */
 function addSvc(id,silent){const s=svcById(id);cart.lines.push({kind:'svc',sid:id,name:s.name,price:s.price,lid:nid('l')});if(!silent)toast(s.name+' ajouté')}
+const CAT_ICONS=[
+ '<svg viewBox="0 0 24 24"><circle cx="6.5" cy="7" r="2.8"/><circle cx="6.5" cy="17" r="2.8"/><path d="M8.8 8.6 20 17M8.8 15.4 20 7"/></svg>',
+ '<svg viewBox="0 0 24 24"><path d="M14 4l6 6-7.5 7.5a3 3 0 0 1-4.2 0l-1.8-1.8a3 3 0 0 1 0-4.2z"/><path d="M6.5 15.5 3 21"/></svg>',
+ '<svg viewBox="0 0 24 24"><path d="M5 3c0 6 3 9 3 18M11 3c0 6 3 9 3 18M17 3c0 6 3 9 3 18"/></svg>',
+ '<svg viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg>',
+ '<svg viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>',
+ '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><path d="M12 3.5c2 2 2 4.5 0 6-2-1.5-2-4 0-6zM12 20.5c-2-2-2-4.5 0-6 2 1.5 2 4 0 6zM3.5 12c2-2 4.5-2 6 0-1.5 2-4 2-6 0zM20.5 12c-2 2-4.5 2-6 0 1.5-2 4-2 6 0z"/></svg>'];
+const PROD_ICONS=[
+ '<svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v3l-2 3v11a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V9l-2-3V3"/><path d="M8 13h8"/></svg>',
+ '<svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>'];
+function prodPick(mode){
+  const sold=mode==='sold';
+  sheet(`<div class="row"><h1 class="grow" style="margin:0">${sold?'Vente de produits':'Produits utilisés'}</h1><button class="btn sm" data-close>Terminé</button></div><p class="note" style="margin:4px 0 12px">${sold?'Le prix de vente s\'ajoute au total.':'Notés dans la fiche de la cliente, sans changer le prix.'} Touchez pour ajouter, touchez encore pour retirer.</p><div class="stack" id="pList"></div><button class="btn block" style="margin-top:10px" data-newp>+ Nouveau produit</button>`,(el,close)=>{
+    el.querySelector('[data-close]').onclick=close;
+    el.querySelector('[data-newp]').onclick=()=>{close();prodSheet(p=>prodPick(mode),sold)};
+    const draw=()=>{const list=S.products.filter(p=>!sold||p.sale);
+      el.querySelector('#pList').innerHTML=list.map(p=>{const l=cart.lines.find(x=>x.kind==='prod'&&x.pid===p.id&&!!x.sold===sold);
+        return `<div class="svc ${l?'chosen':''}" style="cursor:default"><button class="grow" style="all:unset;cursor:pointer;flex:1;min-width:0" data-pt="${p.id}">${esc(p.name)}<span class="tag">${esc(p.type)}${sold?' · '+fmtE(p.sale):' · en '+esc(p.unit)}</span></button>
+        ${l&&!sold?`<input class="price-in num" type="number" inputmode="decimal" data-pq="${l.lid}" value="${l.qty}" aria-label="Quantité"><span class="tag">${esc(p.unit)}</span>`:''}
+        <button class="plus" style="border:0" data-pt="${p.id}" aria-label="${l?'Retirer':'Ajouter'}">${l?'✓':'+'}</button></div>`}).join('')||`<div class="empty">${sold?'Aucun produit avec un prix de vente.':'Aucun produit enregistré.'} Ajoutez-en un ci-dessous.</div>`;
+      el.querySelectorAll('[data-pt]').forEach(b=>b.onclick=()=>{const p=S.products.find(x=>x.id===b.dataset.pt);const i=cart.lines.findIndex(x=>x.kind==='prod'&&x.pid===p.id&&!!x.sold===sold);
+        if(i>=0)cart.lines.splice(i,1);else cart.lines.push(sold?{kind:'prod',pid:p.id,name:p.name,qty:1,unit:p.unit,sold:true,sale:p.sale,lid:nid('l')}:{kind:'prod',pid:p.id,name:p.name,qty:p.unit==='pièce'?1:30,unit:p.unit,sold:false,lid:nid('l')});
+        if(sold)cart.override='';draw();render();if(sold)toast((i>=0?'Retiré : ':'Ajouté : ')+p.name+' · total '+fmtE(calc(cart).total))});
+      el.querySelectorAll('[data-pq]').forEach(i=>i.onchange=()=>{cart.lines.find(x=>x.lid===i.dataset.pq).qty=Number(i.value)||0;render()})};
+    draw()})}
+function catSheet(cat){
+  sheet(`<div class="row"><h1 class="grow" style="margin:0">${esc(cat)}</h1><button class="btn sm" data-close>Terminé</button></div><p class="note" style="margin:4px 0 12px">Touchez pour ajouter, touchez encore pour retirer.</p><div class="stack" id="catList"></div>`,(el,close)=>{
+    el.querySelector('[data-close]').onclick=close;
+    const draw=()=>{const list=S.services.filter(s=>s.cat===cat&&!s.hidden);
+      el.querySelector('#catList').innerHTML=list.map(s=>{const on=cart.lines.some(l=>l.kind==='svc'&&l.sid===s.id);
+        return `<button class="svc ${on?'chosen':''}" data-tog="${s.id}" aria-pressed="${on}"><span class="grow">${esc(s.name)}<span class="tag">${s.dur} min${s.frange?' · offerte avec une autre prestation':''}${s.supp?' · supplément cheveux longs possible':''}</span></span><span class="p num">${priceTag(s)}</span><span class="plus" aria-hidden="true">${on?'✓':'+'}</span></button>`}).join('')||'<div class="empty">Aucune prestation dans cette catégorie.</div>';
+      el.querySelectorAll('[data-tog]').forEach(b=>b.onclick=()=>{const id=b.dataset.tog;const i=cart.lines.findIndex(l=>l.kind==='svc'&&l.sid===id);
+        if(i>=0)cart.lines.splice(i,1);else addSvc(id,true);cart.override='';draw();render();
+        toast((i>=0?'Retiré : ':'Ajouté : ')+svcById(id).name+' · total '+fmtE(calc(cart).total))})};
+    draw()})}
+const weroTel=()=>(S.settings.weroTel??'0692009270');
+const fmtTel=t=>{const d=String(t).replace(/\D/g,'');return d.length===10?d.replace(/(\d{2})(?=\d)/g,'$1 ').trim():t};
 function adjSheet(sign){
   sheet(`<h1>${sign<0?'Retirer un montant':'Ajouter un montant'}</h1><div class="stack">
   <label class="f">Libellé<input type="text" id="aL" value="${sign<0?'Remise':'Supplément'}"></label>
@@ -334,15 +385,16 @@ function renderCaisse(){
   const r=calc(cart);const c=cliById(cart.cid);
   const last=c?S.visits.filter(v=>v.cid===c.id).sort((a,b)=>b.date.localeCompare(a.date))[0]:null;
   V.innerHTML=`
-  <h1>Prestation</h1><p class="sub">Touchez les prestations : le calcul et le prix à annoncer s'affichent en bas de l'écran.</p>
+  <h1>Prestation</h1><p class="sub">Touchez une catégorie pour choisir ses prestations. Le calcul et le prix à annoncer s'affichent en bas de l'écran.</p>
   <label class="f">Cliente<select id="cCli"><option value="" ${cart.cid?'':'selected'}>Cliente de passage</option>${S.clients.length?`<optgroup label="Clientes enregistrées (${S.clients.length})">${S.clients.slice().sort((a,b)=>cname(a).localeCompare(cname(b),'fr')).map(x=>`<option value="${x.id}" ${x.id===cart.cid?'selected':''}>${esc(cname(x))}${x.tel?' · '+esc(x.tel):''}</option>`).join('')}</optgroup>`:''}<option value="__new">+ Nouvelle cliente…</option></select></label>
   ${c&&c.notes?`<p class="note" style="margin-top:6px">Note : ${esc(c.notes)}</p>`:''}
   ${last&&!cart.lines.length?`<button class="btn block" style="margin-top:8px" id="redo">Refaire comme le ${esc(dShort(last.date))}</button>`:''}
 
   <h2>Prestations</h2>
-  <div class="stack">${CATS.map((k,ci)=>{const list=S.services.filter(s=>s.cat===k&&!s.hidden);const open=k===catSel;const n=cart.lines.filter(l=>l.kind==='svc'&&svcById(l.sid)?.cat===k).length;
-    return `<div class="acc ${open?'open':''}" style="--cat:var(${ci%2?'--red':'--green'})"><button class="acc-h" data-cat="${esc(k)}" aria-expanded="${open}"><span class="grow"><b>${esc(k)}</b><span class="tag">${list.length} prestation${list.length>1?'s':''}${n?` · <span style="color:var(--ok)">${n} choisie${n>1?'s':''}</span>`:''}</span></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
-    ${open?`<div class="acc-b">${list.map(s=>`<button class="svc" data-add="${s.id}"><span class="grow">${esc(s.name)}<span class="tag">${s.dur} min${s.frange?' · offerte avec une autre prestation':''}${s.supp?' · supplément cheveux longs possible':''}</span></span><span class="p num">${priceTag(s)}</span><span class="plus" aria-hidden="true">+</span></button>`).join('')}</div>`:''}</div>`}).join('')}</div>
+  <div class="cat-grid">${CATS.map((k,ci)=>{const list=S.services.filter(s=>s.cat===k&&!s.hidden);const n=cart.lines.filter(l=>l.kind==='svc'&&svcById(l.sid)?.cat===k).length;
+    return `<button class="cat-tile ${n?'on':''}" data-cat="${esc(k)}"><span class="cat-ic">${CAT_ICONS[ci]||''}</span><span class="cat-tx"><b>${esc(k)}</b><span class="tag">${n?`${n} choisie${n>1?'s':''}`:`${list.length} prestation${list.length>1?'s':''}`}</span></span>${n?`<span class="cat-n num">${n}</span>`:''}</button>`}).join('')}
+    ${[['used','Produits utilisés',PROD_ICONS[0]],['sold','Vente de produits',PROD_ICONS[1]]].map(([m,lab,ic])=>{const ls=cart.lines.filter(l=>l.kind==='prod'&&(m==='sold')===!!l.sold);const n=ls.length;
+      return `<button class="cat-tile prod ${n?'on':''}" data-pm="${m}"><span class="cat-ic">${ic}</span><span class="cat-tx"><b>${lab}</b><span class="tag">${n?`${n} choisi${n>1?'s':''}`:m==='sold'?'Ajouté au total':'Pour la fiche cliente'}</span></span>${n?`<span class="cat-n num">${n}</span>`:''}</button>`}).join('')}</div>
 
   <h2 id="estim">Calcul</h2>
   <div class="ticket">
@@ -351,7 +403,7 @@ function renderCaisse(){
       <button class="x" data-rml="${l.lid}" aria-label="Retirer">×</button></div>`}).join('')||'<div class="line"><span class="note">Touchez une prestation ci-dessus pour l\'ajouter au calcul.</span></div>'}
     ${r.eligible?`<div class="line"><label class="row grow" style="gap:8px"><input type="checkbox" id="cSupp" ${cart.supp?'checked':''} style="width:18px;height:18px;accent-color:var(--green)"> Supplément cheveux très longs / épais</label>${cart.supp?`<input class="price-in num" type="number" id="cSuppV" value="${cart.suppVal}" min="${S.settings.suppMin}" max="${S.settings.suppMax}" aria-label="Montant du supplément">`:`<span class="tag">${S.settings.suppMin} à ${S.settings.suppMax} €</span>`}</div>`:''}
     <div class="line"><label class="row grow" style="gap:8px"><input type="checkbox" id="cSun" ${cart.sunday?'checked':''} style="width:18px;height:18px;accent-color:var(--green)"> Dimanche ou jour férié (+${S.settings.sundayPct} %)</label><span class="num">${r.sunday?fmtE(r.sunday):''}</span></div>
-    ${cart.lines.filter(l=>l.kind==='prod'&&l.sold).map(l=>`<div class="line"><span class="grow">${esc(l.name)} <span class="tag">Vente · ${l.qty} × ${fmtE(l.sale)}</span></span><span class="num">${fmtE(l.sale*l.qty)}</span><button class="x" data-rml="${l.lid}" aria-label="Retirer">×</button></div>`).join('')}
+    ${cart.lines.filter(l=>l.kind==='prod'&&l.sold).map(l=>`<div class="line"><span class="grow">${esc(l.name)} <span class="tag">Vente · ${l.qty} × ${fmtE(l.sale)}</span></span><span class="row" style="gap:6px"><button class="step" data-sq="${l.lid}" data-d="-1" aria-label="Un de moins">−</button><span class="amt num">${fmtE(l.sale*l.qty)}</span><button class="step" data-sq="${l.lid}" data-d="1" aria-label="Un de plus">+</button></span><button class="x" data-rml="${l.lid}" aria-label="Retirer">×</button></div>`).join('')}
     ${cart.lines.filter(l=>l.kind==='adj').map(l=>`<div class="line"><span class="grow">${esc(l.label)}</span><span class="amt num ${l.amount<0?'minus':''}">${l.amount<0?'− ':'+ '}${fmtE(Math.abs(l.amount))}</span><button class="x" data-rml="${l.lid}" aria-label="Retirer">×</button></div>`).join('')}
     <div class="line" style="gap:8px"><button class="btn sm grow" data-adj="1">+ Ajouter un montant</button><button class="btn sm grow" data-adj="-1">− Retirer un montant</button></div>
     ${r.parts.length?`<div class="calc-sum" aria-label="Détail du calcul">${r.parts.map((x,i)=>`<div><span>${esc(x.label)}</span><span class="num">${i===0?'':x.amount<0?'− ':'+ '}${fmtE(i===0?x.amount:Math.abs(x.amount))}</span></div>`).join('')}</div>`:''}
@@ -362,32 +414,32 @@ function renderCaisse(){
 
   <h2>Produits utilisés</h2>
   <div class="stack">${cart.lines.filter(l=>l.kind==='prod'&&!l.sold).map(l=>`<div class="card row" style="padding:8px 12px"><span class="grow">${esc(l.name)}</span><input class="price-in num" type="number" id="q-${l.lid}" data-qty="${l.lid}" value="${l.qty}" aria-label="Quantité"><span class="tag" style="width:34px">${esc(l.unit)}</span><button class="x" data-rml="${l.lid}" aria-label="Retirer">×</button></div>`).join('')}
-  <div class="row"><select id="cProd" class="grow"><option value="">Noter un produit utilisé…</option>${S.products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div>
-  <div class="row"><select id="cSell" class="grow"><option value="">Vendre un produit…</option>${S.products.filter(p=>p.sale).map(p=>`<option value="${p.id}">${esc(p.name)} · ${fmtE(p.sale)}</option>`).join('')}</select></div></div>
+  <button class="btn block" data-pm="used">+ Noter un produit utilisé</button></div>
 
   <h2>Paiement</h2>
   <div class="seg"><button data-pay="Espèces" aria-pressed="${cart.pay==='Espèces'}">Espèces</button><button data-pay="Wero" aria-pressed="${cart.pay==='Wero'}">Wero</button></div>
+  ${cart.pay==='Wero'?`<div class="wero"><span class="tag">La cliente ouvre Wero, touche « Envoyer » et saisit ce numéro :</span><b class="num wero-tel" id="weroTel">${esc(fmtTel(weroTel()))}</b><span>Montant : <b class="num">${fmtE(r.total)}</b> · L'atelier by S.</span><button class="btn sm" id="weroCopy">Copier le numéro</button></div>`:''}
   <button class="btn pri block" style="margin-top:12px" id="cPay" ${!cart.lines.some(l=>l.kind==='svc'||l.sold)||!cart.pay?'disabled':''}>Encaisser ${fmtE(r.total)}</button>
   ${cart.lines.length?'<button class="btn ghost block" style="margin-top:6px" id="cClear">Tout effacer</button>':''}`;
 
   V.querySelector('#cCli').onchange=e=>{if(e.target.value==='__new'){e.target.value=cart.cid;clientSheet(null,c=>{cart.cid=c.id;render()});return}cart.cid=e.target.value;render()};
   const redo=V.querySelector('#redo'); if(redo)redo.onclick=()=>{last.lines.forEach(l=>{if(l.kind==='svc'&&svcById(l.sid))cart.lines.push({...l,lid:nid('l')});else if(l.kind==='prod'&&!l.sold)cart.lines.push({...l,lid:nid('l')})});toast('Prestations et produits repris');render()};
-  V.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{catSel=catSel===b.dataset.cat?null:b.dataset.cat;render();const h=V.querySelector(`[data-cat="${CSS.escape(b.dataset.cat)}"]`);if(h&&catSel)h.scrollIntoView({block:'nearest',behavior:'smooth'})});
-  V.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{addSvc(b.dataset.add,true);render();toast(svcById(b.dataset.add).name+' : '+fmtE(calc(cart).total)+' au total')});
+  V.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>catSheet(b.dataset.cat));
   V.querySelectorAll('[data-rml]').forEach(b=>b.onclick=()=>{cart.lines=cart.lines.filter(l=>l.lid!==b.dataset.rml);render()});
   const setPrice=(l,v)=>{const s=svcById(l.sid);v=Math.max(0,Math.round(v*100)/100);if(s&&s.type!=='fixe'&&v<s.price){v=s.price;toast('Minimum '+fmtE(s.price))}if(s&&s.type==='range'&&v>s.max){v=s.max;toast('Maximum '+fmtE(s.max))}l.price=v;cart.override='';render()};
   V.querySelectorAll('[data-price]').forEach(i=>i.onchange=()=>{const l=cart.lines.find(x=>x.lid===i.dataset.price);setPrice(l,i.value===''?(svcById(l.sid)?.price||0):Number(i.value))});
   V.querySelectorAll('[data-step]').forEach(b=>b.onclick=()=>{const l=cart.lines.find(x=>x.lid===b.dataset.step);setPrice(l,Number(l.price)+Number(b.dataset.d))});
   V.querySelectorAll('[data-adj]').forEach(b=>b.onclick=()=>adjSheet(Number(b.dataset.adj)));
+  V.querySelectorAll('[data-sq]').forEach(b=>b.onclick=()=>{const l=cart.lines.find(x=>x.lid===b.dataset.sq);l.qty=Math.max(1,l.qty+Number(b.dataset.d));cart.override='';render()});
   V.querySelectorAll('[data-qty]').forEach(i=>i.onchange=()=>{cart.lines.find(x=>x.lid===i.dataset.qty).qty=Number(i.value)||0;render()});
   const sp=V.querySelector('#cSupp'); if(sp)sp.onchange=()=>{cart.supp=sp.checked;cart.override='';render()};
   const sv=V.querySelector('#cSuppV'); if(sv)sv.onchange=()=>{let v=Number(sv.value);v=Math.min(S.settings.suppMax,Math.max(S.settings.suppMin,v||S.settings.suppMin));cart.suppVal=v;cart.override='';render()};
   V.querySelector('#cSun').onchange=e=>{cart.sunday=e.target.checked;cart.override='';render()};
   V.querySelector('#cOver').onchange=e=>{cart.override=e.target.value===''?'':Number(e.target.value);render()};
   const ro=V.querySelector('#resetOver'); if(ro)ro.onclick=()=>{cart.override='';render()};
-  V.querySelector('#cProd').onchange=e=>{const p=S.products.find(x=>x.id===e.target.value);if(p){cart.lines.push({kind:'prod',pid:p.id,name:p.name,qty:p.unit==='pièce'?1:30,unit:p.unit,sold:false,lid:nid('l')});render()}};
-  V.querySelector('#cSell').onchange=e=>{const p=S.products.find(x=>x.id===e.target.value);if(p){cart.lines.push({kind:'prod',pid:p.id,name:p.name,qty:1,unit:p.unit,sold:true,sale:p.sale,lid:nid('l')});cart.override='';render()}};
-  V.querySelectorAll('[data-pay]').forEach(b=>b.onclick=()=>{cart.pay=b.dataset.pay;render()});
+  V.querySelectorAll('[data-pm]').forEach(b=>b.onclick=()=>prodPick(b.dataset.pm));
+  V.querySelectorAll('[data-pay]').forEach(b=>b.onclick=()=>{cart.pay=b.dataset.pay;render();if(cart.pay==='Wero'){const w=V.querySelector('.wero');if(w)w.scrollIntoView({block:'center',behavior:'smooth'})}});
+  const wc=V.querySelector('#weroCopy');if(wc)wc.onclick=()=>{const t=weroTel().replace(/\s/g,'');const sel=()=>{const rg=document.createRange();rg.selectNodeContents(V.querySelector('#weroTel'));const se=getSelection();se.removeAllRanges();se.addRange(rg);toast('Numéro sélectionné')};try{navigator.clipboard.writeText(t).then(()=>toast('Numéro copié'),sel)}catch(e){sel()}};
   const clr=V.querySelector('#cClear'); if(clr)clr.onclick=()=>{cart=newCart();render()};
   V.querySelector('#cPay').onclick=()=>{const r2=calc(cart);
     S.visits.push({id:nid('v'),cid:cart.cid||null,date:T,lines:cart.lines.map(l=>({...l})),supp:r2.supp,sunday:cart.sunday,total:r2.total,pay:cart.pay});
@@ -457,6 +509,7 @@ function renderTarifs(){
   <div class="stack">
     <div class="switch"><span class="grow">Supplément cheveux très longs / épais</span><input class="price-in num" type="number" id="sMin" value="${S.settings.suppMin}" aria-label="Minimum"><span class="tag">à</span><input class="price-in num" type="number" id="sMax" value="${S.settings.suppMax}" aria-label="Maximum"></div>
     <div class="switch"><span class="grow">Majoration dimanche et jours fériés (%) <span class="pill prov">provisoire</span></span><input class="price-in num" type="number" id="sSun" value="${S.settings.sundayPct}" aria-label="Majoration"></div>
+    <label class="f">Numéro Wero du salon (affiché quand la cliente paie par Wero)<input type="tel" id="sWero" value="${esc(weroTel())}"></label>
     <div class="switch"><span class="grow">Acompte prestations mariée (%)</span><input class="price-in num" type="number" id="sAc" value="${S.settings.acomptePct}" aria-label="Acompte"></div>
     <label class="f">Message du rappel SMS <span class="note">({prenom}, {jour} et {heure} sont remplacés automatiquement)</span><textarea id="sSms" rows="3">${esc(S.settings.sms)}</textarea></label>
   </div>
@@ -482,6 +535,7 @@ function renderTarifs(){
   V.querySelector('#addS').onclick=()=>svcSheet();
   const st=(id,k)=>V.querySelector(id).onchange=e=>{S.settings[k]=Number(e.target.value)||0;save();toast('Règle enregistrée')};
   st('#sMin','suppMin');st('#sMax','suppMax');st('#sSun','sundayPct');st('#sAc','acomptePct');
+  V.querySelector('#sWero').onchange=e=>{S.settings.weroTel=e.target.value.trim();save();toast('Numéro Wero enregistré')};
   V.querySelector('#sSms').onchange=e=>{S.settings.sms=e.target.value;save();toast('Message enregistré')};
   V.querySelectorAll('[data-pp]').forEach(i=>i.onchange=()=>{const p=S.products.find(x=>x.id===i.dataset.pp);p.sale=i.value===''?null:Number(i.value);save();render()});
   V.querySelector('#addP').onclick=()=>prodSheet();
@@ -502,14 +556,15 @@ function svcSheet(s){const isNew=!s;s=s||svc(tarCat,'',0,'fixe');
       const t=el.querySelector('#eT').value,p=Number(el.querySelector('#eP').value)||0,m=Number(el.querySelector('#eM').value)||p;
       Object.assign(s,{name:n,cat:el.querySelector('#eC').value,type:t,price:p,max:t==='range'?Math.max(p,m):undefined,dur:Number(el.querySelector('#eD').value)||30,supp:el.querySelector('#eS').checked,frange:el.querySelector('#eF').checked,mariee:el.querySelector('#eMa').checked});
       if(isNew)S.services.push(s);tarCat=s.cat;save();close();toast('Prestation enregistrée');render()}})}
-function prodSheet(){
+function prodSheet(onSaved,forSale){
   sheet(`<h1>Nouveau produit</h1><div class="stack">
   <label class="f">Nom<input type="text" id="pN" placeholder="ex. Coloration 7.1 blond cendré"></label>
   <div class="row"><label class="f grow">Type<input type="text" id="pT" placeholder="Coloration, soin…"></label><label class="f grow">Unité<select id="pU"><option>ml</option><option>g</option><option>pièce</option></select></label></div>
-  <label class="f">Prix de vente (€, vide si non vendu)<input type="number" id="pS"></label>
+  <label class="f">Prix de vente (€${forSale?'':', vide si non vendu'})<input type="number" inputmode="decimal" id="pS"></label>
   <button class="btn pri block" id="pOk">Ajouter</button></div>`,(el,close)=>{
     el.querySelector('#pOk').onclick=()=>{const n=el.querySelector('#pN').value.trim();if(!n){toast('Donnez un nom au produit');return}
-      const sv=el.querySelector('#pS').value;S.products.push({id:nid('p'),name:n,type:el.querySelector('#pT').value.trim()||'Produit',ref:'',unit:el.querySelector('#pU').value,sale:sv===''?null:Number(sv)});save();close();toast('Produit ajouté');render()}})}
+      if(forSale&&el.querySelector('#pS').value===''){toast('Indiquez le prix de vente');return}
+      const sv=el.querySelector('#pS').value;S.products.push({id:nid('p'),name:n,type:el.querySelector('#pT').value.trim()||'Produit',ref:'',unit:el.querySelector('#pU').value,sale:sv===''?null:Number(sv)});save();close();toast('Produit ajouté');if(onSaved)onSaved();else render()}})}
 
 /* ---------- Sauvegarde ---------- */
 async function backupOut(){
