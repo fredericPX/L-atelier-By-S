@@ -113,6 +113,14 @@ label.f > *{color:var(--fg)}
 .calc-sum div span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
 .wero{margin-top:10px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:16px;border:2px solid var(--green);border-radius:14px;background:var(--green-soft)}
 .wero-tel{font-family:var(--f-display);font-weight:400;font-size:34px;letter-spacing:.02em;user-select:text}
+.dose .dose-f{display:flex;gap:8px;align-items:flex-end;margin-top:8px;flex-wrap:wrap}
+.dose .dose-f .f{font-size:12px}
+.formula{display:flex;flex-direction:column;gap:6px}
+.formula .num{color:var(--silver);text-align:right}
+.hist-l{display:flex;flex-direction:column;gap:2px;margin:6px 0;font-size:14px}
+.hist-l>div{display:flex;justify-content:space-between;gap:10px}
+.hist-t{border-top:1px dashed var(--line);padding-top:4px;margin-top:2px;font-weight:700}
+.prod-used>div{margin-top:2px}
 .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .cat-tile{display:flex;align-items:center;gap:10px;min-height:76px;padding:12px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);text-align:left;position:relative;box-shadow:0 3px 0 var(--line)}
 .cat-tile b{display:block;font-size:14px;line-height:1.2}
@@ -333,6 +341,28 @@ const CAT_ICONS=[
 const PROD_ICONS=[
  '<svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v3l-2 3v11a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V9l-2-3V3"/><path d="M8 13h8"/></svg>',
  '<svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>'];
+// Dosage d'un produit utilisé : quantité + unité, mélange / oxydant, temps de pose
+function doseCard(l,pfx){return `<div class="card dose"><div class="row"><b class="grow">${esc(l.name)}</b><button class="x" data-rml="${l.lid}" aria-label="Retirer">×</button></div>
+  <div class="dose-f"><label class="f">Quantité<span class="row" style="gap:4px"><input class="price-in num" type="number" inputmode="decimal" id="${pfx}q-${l.lid}" data-dq="${l.lid}" value="${l.qty??''}"><span class="tag">${esc(l.unit)}</span></span></label>
+  <label class="f grow">Mélange / oxydant<input type="text" id="${pfx}m-${l.lid}" data-dm="${l.lid}" value="${esc(l.mix||'')}" placeholder="ex. 1+1,5 · 20 vol"></label>
+  <label class="f">Pose<span class="row" style="gap:4px"><input class="price-in num" type="number" inputmode="numeric" id="${pfx}p-${l.lid}" data-dp="${l.lid}" value="${l.pose??''}" style="width:58px"><span class="tag">min</span></span></label></div></div>`}
+function bindDose(root,lines,after){
+  const f=id=>lines.find(x=>x.lid===id);
+  root.querySelectorAll('[data-dq]').forEach(i=>i.onchange=()=>{f(i.dataset.dq).qty=i.value===''?'':Number(i.value);after()});
+  root.querySelectorAll('[data-dm]').forEach(i=>i.onchange=()=>{f(i.dataset.dm).mix=i.value.trim();after()});
+  root.querySelectorAll('[data-dp]').forEach(i=>i.onchange=()=>{f(i.dataset.dp).pose=i.value===''?'':Number(i.value);after()});
+}
+const doseTxt=l=>[(l.qty!==''&&l.qty!=null?l.qty+' '+l.unit:''),l.mix||'',(l.pose?'pose '+l.pose+' min':'')].filter(Boolean).join(' · ');
+function doseSheet(v){
+  const lines=v.lines;const draw=(el)=>{const used=lines.filter(l=>l.kind==='prod'&&!l.sold);
+    el.querySelector('#dsL').innerHTML=used.map(l=>doseCard(l,'ds')).join('')||'<div class="empty">Aucun produit noté pour ce passage.</div>';
+    bindDose(el,lines,()=>save());
+    el.querySelectorAll('[data-rml]').forEach(b=>b.onclick=()=>{const i=lines.findIndex(x=>x.lid===b.dataset.rml);lines.splice(i,1);save();draw(el)})};
+  sheet(`<div class="row"><h1 class="grow" style="margin:0">Dosages du ${esc(dShort(v.date))}</h1><button class="btn sm" data-close>Terminé</button></div><div class="stack" style="margin-top:12px" id="dsL"></div>
+  <select id="dsAdd" style="margin-top:10px"><option value="">+ Ajouter un produit…</option>${S.products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select>`,(el,close)=>{
+    el.querySelector('[data-close]').onclick=()=>{close();render()};
+    el.querySelector('#dsAdd').onchange=e=>{const p=S.products.find(x=>x.id===e.target.value);if(p){lines.push({kind:'prod',pid:p.id,name:p.name,qty:p.unit==='pièce'?1:30,unit:p.unit,sold:false,lid:nid('l')});save();e.target.value='';draw(el)}};
+    draw(el)})}
 function prodPick(mode){
   const sold=mode==='sold';
   sheet(`<div class="row"><h1 class="grow" style="margin:0">${sold?'Vente de produits':'Produits utilisés'}</h1><button class="btn sm" data-close>Terminé</button></div><p class="note" style="margin:4px 0 12px">${sold?'Le prix de vente s\'ajoute au total.':'Notés dans la fiche de la cliente, sans changer le prix.'} Touchez pour ajouter, touchez encore pour retirer.</p><div class="stack" id="pList"></div><button class="btn block" style="margin-top:10px" data-newp>+ Nouveau produit</button>`,(el,close)=>{
@@ -413,7 +443,7 @@ function renderCaisse(){
   ${cart.override!==''&&Number(cart.override)!==r.auto?`<p class="note">Total modifié à la main (calcul : ${fmtE(r.auto)}). <button class="btn sm ghost" id="resetOver">Revenir au calcul</button></p>`:''}
 
   <h2>Produits utilisés</h2>
-  <div class="stack">${cart.lines.filter(l=>l.kind==='prod'&&!l.sold).map(l=>`<div class="card row" style="padding:8px 12px"><span class="grow">${esc(l.name)}</span><input class="price-in num" type="number" id="q-${l.lid}" data-qty="${l.lid}" value="${l.qty}" aria-label="Quantité"><span class="tag" style="width:34px">${esc(l.unit)}</span><button class="x" data-rml="${l.lid}" aria-label="Retirer">×</button></div>`).join('')}
+  <div class="stack">${cart.lines.filter(l=>l.kind==='prod'&&!l.sold).map(l=>doseCard(l,'')).join('')}
   <button class="btn block" data-pm="used">+ Noter un produit utilisé</button></div>
 
   <h2>Paiement</h2>
@@ -431,7 +461,7 @@ function renderCaisse(){
   V.querySelectorAll('[data-step]').forEach(b=>b.onclick=()=>{const l=cart.lines.find(x=>x.lid===b.dataset.step);setPrice(l,Number(l.price)+Number(b.dataset.d))});
   V.querySelectorAll('[data-adj]').forEach(b=>b.onclick=()=>adjSheet(Number(b.dataset.adj)));
   V.querySelectorAll('[data-sq]').forEach(b=>b.onclick=()=>{const l=cart.lines.find(x=>x.lid===b.dataset.sq);l.qty=Math.max(1,l.qty+Number(b.dataset.d));cart.override='';render()});
-  V.querySelectorAll('[data-qty]').forEach(i=>i.onchange=()=>{cart.lines.find(x=>x.lid===i.dataset.qty).qty=Number(i.value)||0;render()});
+  bindDose(V,cart.lines,()=>{});
   const sp=V.querySelector('#cSupp'); if(sp)sp.onchange=()=>{cart.supp=sp.checked;cart.override='';render()};
   const sv=V.querySelector('#cSuppV'); if(sv)sv.onchange=()=>{let v=Number(sv.value);v=Math.min(S.settings.suppMax,Math.max(S.settings.suppMin,v||S.settings.suppMin));cart.suppVal=v;cart.override='';render()};
   V.querySelector('#cSun').onchange=e=>{cart.sunday=e.target.checked;cart.override='';render()};
@@ -486,6 +516,7 @@ function clientSheet(c,onSaved){const isNew=!c;c=c||{id:nid('c'),first:'',last:'
 function renderFiche(c){
   if(!c){openClient=null;return renderClientes()}
   const vs=S.visits.filter(v=>v.cid===c.id).sort((a,b)=>b.date.localeCompare(a.date));
+  const lastF=vs.find(v=>v.lines.some(l=>l.kind==='prod'&&!l.sold));
   const next=S.appts.filter(a=>a.cid===c.id&&a.date>=T).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
   V.innerHTML=`<button class="btn sm ghost" id="back" style="margin-bottom:8px">‹ Toutes les clientes</button>
   <h1>${esc(cname(c))}</h1><p class="sub">${esc(c.tel)}</p>
@@ -493,12 +524,18 @@ function renderFiche(c){
   <div class="row wrap" style="margin-top:10px"><button class="btn pri" id="newP">Nouvelle prestation</button><button class="btn" id="edit">Modifier</button></div>
   <h2>Prochains rendez-vous</h2>
   <div class="stack">${next.length?next.map(a=>`<div class="card row"><span class="grow"><b>${esc(dLong(a.date))}</b> à ${a.time.replace(':','h')}<span class="tag">${esc(a.sids.map(id=>svcById(id)?.name).filter(Boolean).join(' + '))}</span></span>${a.sms?'<span class="pill ok">SMS envoyé</span>':'<span class="pill todo">SMS à envoyer</span>'}</div>`).join(''):'<div class="empty">Aucun rendez-vous prévu.</div>'}</div>
-  <h2>Historique · ${vs.length} passage${vs.length>1?'s':''}</h2>
-  <div class="stack">${vs.map(v=>{const sv=v.lines.filter(l=>l.kind==='svc');const used=v.lines.filter(l=>l.kind==='prod'&&!l.sold);const sold=v.lines.filter(l=>l.kind==='prod'&&l.sold);
-    return `<div class="hist"><div class="when">${esc(dShort(v.date))} · ${fmtE(v.total)} · ${esc(v.pay)}</div><b>${esc(sv.map(l=>l.name).join(' + ')||'Vente de produits')}</b>
-    ${used.length?`<div class="prod-used">Produits : ${used.map(l=>`<b>${esc(l.name)}</b> ${l.qty} ${esc(l.unit)}`).join(', ')}</div>`:''}
-    ${sold.length?`<div class="prod-used">Acheté : ${sold.map(l=>esc(l.name)).join(', ')}</div>`:''}
-    <button class="btn sm" style="margin-top:6px" data-redo="${v.id}">Refaire cette prestation</button></div>`}).join('')||'<div class="empty">Pas encore de passage enregistré.</div>'}</div>`;
+  ${lastF?`<h2>Dernière formule · ${esc(dShort(lastF.date))}</h2><div class="card formula">${lastF.lines.filter(l=>l.kind==='prod'&&!l.sold).map(l=>`<div class="row"><b class="grow">${esc(l.name)}</b><span class="num">${esc(doseTxt(l)||'—')}</span></div>`).join('')}</div>`:''}
+  <h2>Historique des prestations · ${vs.length} passage${vs.length>1?'s':''}${vs.length?' · '+fmtE(vs.reduce((a,v)=>a+v.total,0)):''}</h2>
+  <div class="stack">${vs.map(v=>{const sv=v.lines.filter(l=>l.kind==='svc');const used=v.lines.filter(l=>l.kind==='prod'&&!l.sold);const sold=v.lines.filter(l=>l.kind==='prod'&&l.sold);const adj=v.lines.filter(l=>l.kind==='adj');
+    return `<div class="hist"><div class="when">${esc(dLong(v.date))} ${new Date(v.date+'T12:00').getFullYear()}</div>
+    <div class="hist-l">${sv.map(l=>`<div><span>${esc(l.name)}</span><span class="num">${l.free?'offerte':fmtE(l.price)}</span></div>`).join('')}
+    ${v.supp?`<div><span>Supplément cheveux longs</span><span class="num">${fmtE(v.supp)}</span></div>`:''}
+    ${sold.map(l=>`<div><span>${esc(l.name)} (vente${l.qty>1?' × '+l.qty:''})</span><span class="num">${fmtE((l.sale||0)*l.qty)}</span></div>`).join('')}
+    ${adj.map(l=>`<div><span>${esc(l.label)}</span><span class="num">${l.amount<0?'− ':'+ '}${fmtE(Math.abs(l.amount))}</span></div>`).join('')}
+    <div class="hist-t"><span>Payé · ${esc(v.pay)}</span><span class="num">${fmtE(v.total)}</span></div></div>
+    ${used.length?`<div class="prod-used"><span class="tag" style="text-transform:uppercase;letter-spacing:.06em">Dosages</span>${used.map(l=>`<div><b>${esc(l.name)}</b> · ${esc(doseTxt(l)||'quantité non notée')}</div>`).join('')}</div>`:''}
+    <div class="row wrap" style="margin-top:8px"><button class="btn sm" data-dose="${v.id}">${used.length?'Modifier les dosages':'+ Noter des dosages'}</button><button class="btn sm" data-redo="${v.id}">Refaire cette prestation</button></div></div>`}).join('')||'<div class="empty">Pas encore de passage enregistré.</div>'}</div>`;
+  V.querySelectorAll('[data-dose]').forEach(b=>b.onclick=()=>doseSheet(S.visits.find(x=>x.id===b.dataset.dose)));
   V.querySelector('#back').onclick=()=>{openClient=null;render()};
   V.querySelector('#edit').onclick=()=>clientSheet(c);
   V.querySelector('#newP').onclick=()=>{cart=newCart();cart.cid=c.id;go('caisse')};
